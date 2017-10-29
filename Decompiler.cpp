@@ -57,10 +57,10 @@ int main()
 			str+='\n';
 		}
 	}
-	//std::cout<<str;
+	
 	str=removeComments(str);
 	
-	
+	// remove multiple spaces
 	size_t pos;
 	while( ( pos = str.find( "  " ) )!=std::string::npos )
     	str = str.replace( pos, 2, " " );
