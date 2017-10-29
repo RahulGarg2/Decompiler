@@ -22,15 +22,17 @@ std::string removeComments(std::string prgm)
     {
         // If single line comment flag is on, then check for end of it
         if (cmt == true && prgm[i] == '\n')
+        {
             cmt = false;
- 
+        	
+ 		}
         // If this character is in a comment, ignore it
         else if (cmt)
             continue;
  
         // Check for beginning of comments and set the approproate flags
         else if (prgm[i] == '@')
-            cmt = true, i++;
+            cmt = true;
         
         // If current character is a non-comment character, append it to res
         else  res += prgm[i];
@@ -43,16 +45,32 @@ std::string removeComments(std::string prgm)
 int main()
 {
 
-	std::ifstream fin("filename.txt");      
-	std::string str((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());  //converting the text file to multiline string
+	std::ifstream fin;
+	fin.open("filename.txt"); 
+	std::string line;
+	std::string str;
+	while(getline(fin,line))
+	{
+		if(!line.empty())
+		{
+			str+=line;
+			str+='\n';
+		}
+	}
+	//std::cout<<str;
 	str=removeComments(str);
-	str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());      // remove any blank lines 
 	std::cout<<str;
-
-
-
-
-
-
+	
+	for(int i=str.size()-1; i >= 0; i-- )
+    {
+    	std::cout<<i;
+        if(str[i]=' '&&str[i]==str[i-1])
+        {
+            str.erase( str.begin() + i );
+            std::cout<<str;
+        }
+    }
+    std::cout<<str;
+    fin.close();
 	return 0;
 }
