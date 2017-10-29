@@ -59,18 +59,14 @@ int main()
 	}
 	//std::cout<<str;
 	str=removeComments(str);
-	std::cout<<str;
 	
-	for(int i=str.size()-1; i >= 0; i-- )
-    {
-    	std::cout<<i;
-        if(str[i]=' '&&str[i]==str[i-1])
-        {
-            str.erase( str.begin() + i );
-            std::cout<<str;
-        }
-    }
-    std::cout<<str;
+	
+	size_t pos;
+	while( ( pos = str.find( "  " ) )!=std::string::npos )
+    	str = str.replace( pos, 2, " " );
+
+
+    std::cout<<str<<"\n";
     fin.close();
 	return 0;
 }
