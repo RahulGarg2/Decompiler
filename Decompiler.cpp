@@ -24,6 +24,7 @@ std::string removeComments(std::string prgm)
         if (cmt == true && prgm[i] == '\n')
         {
             cmt = false;
+            res+=prgm[i];
         	
  		}
         // If this character is in a comment, ignore it
@@ -35,10 +36,40 @@ std::string removeComments(std::string prgm)
             cmt = true;
         
         // If current character is a non-comment character, append it to res
-        else  res += prgm[i];
+        else  
+        {
+        	
+        	res += prgm[i];
+        	if(prgm[i] == ':')          // remove multiple instructions from same line
+        	{
+        		res += '\n';
+        	}
+    	}
     }
     return res;
 }
+
+std::string removeblanklines(std::string prgm)
+{
+	int n = prgm.length();
+    std::string res;
+ 
+ 
+    // Traverse the given program
+    for (int i=0; i<n; i++)
+    {
+    	if(prgm[i]=='\n' && prgm[i]==prgm[i-1])
+    	{
+    		continue;
+    	}
+    	else
+    	{
+    		res+=prgm[i];
+    	}
+    }
+    return res;
+}
+
 
 
 
@@ -65,6 +96,10 @@ int main()
 	while( ( pos = str.find( "  " ) )!=std::string::npos )
     	str = str.replace( pos, 2, " " );
 
+    // remove extra blank lines
+    str=removeblanklines(str);
+
+	//str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
     std::cout<<str<<"\n";
     fin.close();
