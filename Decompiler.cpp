@@ -5,7 +5,8 @@ using namespace std;
 // Function prototypes
 string removeComments(string);
 string removeblanklines(string);
-string addSpace(string );
+string addSpace(string);
+string removeTab(string;
 void preProcessFile();
 void tokenizeProgram();
 vector<string> cleanUpTokens(vector<string>);
@@ -49,7 +50,8 @@ void dumpCode(vector<string> temp, string function, string signature){
   for(int i=0;i<temp.size();i++){
   	fout<<temp[i]<<endl;
   }
-  fout<<signature<<endl;
+  if(!signature.compare("")==0)
+  	fout<<signature<<endl;
   fout<<"}"<<endl;
   fout.close();
 }
@@ -68,6 +70,9 @@ string swiHandler(vector<string> instruction){
   }
   else if(instruction[1].compare("0x6c")==0){
   	return swiIntegerOut();
+  }
+  else if(instruction[1].compare("0x11")==0){
+  	return "exit(0);";
   }
   else{
   	cout<<"Error occured while decompiling SWI operation"<<endl;
@@ -181,6 +186,25 @@ string addSpace(string prgm)
 	return res;
 }
 
+string removeTab(string prgm)
+{
+	int n=prgm.lenght();
+	string res;
+	for(int i=0;i<n;i++)
+	{
+		
+		if(prgm[i]=='\t')
+		{
+			res+=" ";
+		}
+		else
+		{
+			res+=prgm[i];
+		}
+	}
+	return res;
+}
+
 
 void preProcessFile(){
 	ifstream fin;
@@ -197,7 +221,9 @@ void preProcessFile(){
 	}
 	
 	str=removeComments(str);
+  str=removeTabs(str);
   str=addSpace(str);
+  
 	
 	// remove multiple spaces
 	size_t pos;
@@ -500,7 +526,7 @@ int main()
 	preProcessFile();			// Phase 1 - Implemented by Rahul Garg	
 	tokenizeProgram();			// Phase 2 - Implemented by Nihesh Anderson
   defineVariables();			// Declares variables
-  dumpCode(sequentialTranslator(Program),"int main()","return 0;");  // Translates sequential code and writes to file
+  dumpCode(sequentialTranslator(Program),"int main()","");  // Translates sequential code and writes to file
   test();								// Write your tests here
 	return 0;
 }
