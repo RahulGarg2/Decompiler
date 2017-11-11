@@ -32,5 +32,5 @@ var1 = 1;
 if(var1==1){ 
  	 printf("%d",var2); 
 } 
-return 0;
+exit(0);
 }

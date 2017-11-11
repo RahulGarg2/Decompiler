@@ -49,7 +49,8 @@ void dumpCode(vector<string> temp, string function, string signature){
   for(int i=0;i<temp.size();i++){
   	fout<<temp[i]<<endl;
   }
-  fout<<signature<<endl;
+  if(!signature.compare("")==0)
+  	fout<<signature<<endl;
   fout<<"}"<<endl;
   fout.close();
 }
@@ -68,6 +69,9 @@ string swiHandler(vector<string> instruction){
   }
   else if(instruction[1].compare("0x6c")==0){
   	return swiIntegerOut();
+  }
+  else if(instruction[1].compare("0x11")==0){
+  	return "exit(0);";
   }
   else{
   	cout<<"Error occured while decompiling SWI operation"<<endl;
@@ -500,7 +504,7 @@ int main()
 	preProcessFile();			// Phase 1 - Implemented by Rahul Garg	
 	tokenizeProgram();			// Phase 2 - Implemented by Nihesh Anderson
   defineVariables();			// Declares variables
-  dumpCode(sequentialTranslator(Program),"int main()","return 0;");  // Translates sequential code and writes to file
+  dumpCode(sequentialTranslator(Program),"int main()","");  // Translates sequential code and writes to file
   test();								// Write your tests here
 	return 0;
 }
