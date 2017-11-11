@@ -1,11 +1,15 @@
+
 #include<bits/stdc++.h>
 
 using namespace std;
-
+typedef string (*FnPtr)(vector<string>);
+typedef std::unordered_map<std::string, FnPtr> command_map;
 // Function prototypes
+void InitialiseCommands(command_map &listx);
 string removeComments(string);
 string removeblanklines(string);
-string addSpace(string );
+string addSpace(string);
+string removeTab(string);
 void preProcessFile();
 void tokenizeProgram();
 vector<string> cleanUpTokens(vector<string>);
@@ -20,9 +24,9 @@ string cmpParser(vector<string>);
 string swiIntegerIn();
 string swiIntegerOut();
 string swiCharacterOut();
-string swiHandler(string);
+string swiHandler(vector<string>);
 string addParser(vector<string>);
-string decompileSequentialInstruction(vector<string>);
+string decompileSequentialInstruction(vector<string>,command_map);
 void defineVariables();
 vector<string> sequentialTranslator(vector<vector<string> >);
 void dumpCode(vector<string>, string, string);
@@ -35,9 +39,11 @@ int variableCounter = 16; 				// Naming registers as "var"+to_string(variableCou
 map<string, int> variableTable;			// One to one mapping of registers and variables
 
 vector<string> sequentialTranslator(vector<vector<string> > pgm){
+  command_map listx;
+  InitialiseCommands(listx);
   vector<string> temp;
   for(int i=0;i<pgm.size();i++){
-    temp.push_back(decompileSequentialInstruction(pgm[i]));
+    temp.push_back(decompileSequentialInstruction(pgm[i],listx));
   }
   return temp;
 }
@@ -116,11 +122,11 @@ string removeComments(string prgm)
 {
     int n = prgm.length();
     string res;
- 
+
     // Flags to indicate that single line and multpile line comments
     // have started or not.
     bool cmt = false;
-   
+
     // Traverse the given program
     for (int i=0; i<n; i++)
     {
@@ -129,19 +135,19 @@ string removeComments(string prgm)
         {
             cmt = false;
             res+=prgm[i];
-        	
+
  		}
         // If this character is in a comment, ignore it
         else if (cmt)
             continue;
- 
+
         // Check for beginning of comments and set the approproate flags
         else if (prgm[i] == '@')
             cmt = true;
-        
+
         // If current character is a non-comment character, append it to res
-        else  
-        {       	
+        else
+        {
         	res += prgm[i];
         	if(prgm[i] == ':')          // remove multiple instructions from same line
         	{
@@ -156,7 +162,7 @@ string removeblanklines(string prgm)
 {
 	int n = prgm.length();
     string res;
-  
+
     // Traverse the given program
     for (int i=0; i<n; i++){
     	if(prgm[i]=='\n' && prgm[i]==prgm[i-1]){
@@ -185,10 +191,29 @@ string addSpace(string prgm)
 	return res;
 }
 
+string removeTab(string prgm)
+{
+	int n=prgm.length();
+	string res;
+	for(int i=0;i<n;i++)
+	{
+
+		if(prgm[i]=='\t')
+		{
+			res+=" ";
+		}
+		else
+		{
+			res+=prgm[i];
+		}
+	}
+	return res;
+}
+
 
 void preProcessFile(){
 	ifstream fin;
-	fin.open("filename.txt"); 
+	fin.open("filename.txt");
 	string line;
 	string str;
 	while(getline(fin,line))
@@ -199,10 +224,12 @@ void preProcessFile(){
 			str+='\n';
 		}
 	}
-	
+
 	str=removeComments(str);
+  str=removeTab(str);
   str=addSpace(str);
-	
+
+
 	// remove multiple spaces
 	size_t pos;
 	while( ( pos = str.find( "  " ) )!=std::string::npos )
@@ -227,7 +254,7 @@ vector<string> cleanUpTokens(vector<string> instruction){
 		transform(instruction[i].begin(), instruction[i].end(), instruction[i].begin(), ::tolower);
   }
 	for(int i=instruction.size()-1;i>=0;i--){														// Remove empty tokens
-		if(instruction[i].empty()){																				
+		if(instruction[i].empty()){
 			instruction.erase(instruction.begin()+i);
 		}
 	}
@@ -237,7 +264,7 @@ vector<string> cleanUpTokens(vector<string> instruction){
 			instruction.insert(instruction.begin(),labelHeader);
 			instruction[1].erase(remove(instruction[1].begin(), instruction[1].end(), ':'), instruction[1].end());
 		}
-	}	
+	}
 	return instruction;
 }
 
@@ -264,7 +291,7 @@ void tokenizeProgram(){
 	fin.open("filename.c");
 
 	// Reading file with space as delimiter
-	while(getline(fin, line))		
+	while(getline(fin, line))
 	{
 		stringstream ss(line);
 		istream_iterator<string> begin(ss);
@@ -277,7 +304,7 @@ void tokenizeProgram(){
 }
 string mulParser(vector<string> instruction){
   if(instruction[0].compare("mul")!=0){
-   	cout<<"Error in mulParser"<<endl; 
+   	cout<<"Error in mulParser"<<endl;
   }
   string translatedCommand = "";
   string targetRegister = instruction[1];
@@ -295,7 +322,7 @@ string mulParser(vector<string> instruction){
 		sourceTransform2 = "var"+to_string(variableTable[sourceRegister2]);
   }
   else{
-    sourceTransform2 = sourceRegister2.substr(1);    
+    sourceTransform2 = sourceRegister2.substr(1);
   }
   translatedCommand = targetTransform+" = "+sourceTransform1+" * "+sourceTransform2+";";
   return translatedCommand;
@@ -303,7 +330,7 @@ string mulParser(vector<string> instruction){
 
 string subParser(vector<string> instruction){
   if(instruction[0].compare("sub")!=0){
-   	cout<<"Error in subParser"<<endl; 
+   	cout<<"Error in subParser"<<endl;
   }
   string translatedCommand =  "";
   string targetRegister = instruction[1];
@@ -315,7 +342,7 @@ string subParser(vector<string> instruction){
 		sourceTransform1 ="var"+ to_string(variableTable[sourceRegister1]);
   }
   else{
-    sourceTransform1 = sourceRegister1.substr(1);    
+    sourceTransform1 = sourceRegister1.substr(1);
   }
   if(sourceRegister2.at(0)!='#'){
 		sourceTransform2 ="var" + to_string(variableTable[sourceRegister2]);
@@ -330,7 +357,7 @@ string subParser(vector<string> instruction){
 string cmpParser(vector<string> instruction)
 {
   if(instruction[0].compare("cmp")!=0){
-   	cout<<"Error in cmpParser"<<endl; 
+   	cout<<"Error in cmpParser"<<endl;
   }
   string translatedCommand =  "";
   string sourceRegister1 = instruction[1];
@@ -342,7 +369,7 @@ string cmpParser(vector<string> instruction)
   }
   else{
     sourceTransform1 = sourceRegister1.substr(1);
-    
+
   }
   if(sourceRegister2.at(0)!='#'){
 		sourceTransform2 ="var" + to_string(variableTable[sourceRegister2]);
@@ -353,12 +380,12 @@ string cmpParser(vector<string> instruction)
   translatedCommand = targetTransform+" = "+sourceTransform1+" - "+sourceTransform2+";";
   return translatedCommand;
 }
-  
+
 
 string movParser(vector<string> instruction)
 {
     if(instruction[0].compare("mov")!=0){
-   	cout<<"Error in movParser"<<endl; 
+   	cout<<"Error in movParser"<<endl;
   }
   string translatedCommand =  "";
   string targetRegister = instruction[1];
@@ -369,8 +396,8 @@ string movParser(vector<string> instruction)
 		sourceTransform1 ="var"+ to_string(variableTable[sourceRegister1]);
   }
   else{
-    sourceTransform1 = sourceRegister1.substr(1);    
-  } 
+    sourceTransform1 = sourceRegister1.substr(1);
+  }
   translatedCommand = targetTransform+" = "+sourceTransform1+";";
   return translatedCommand;
 }
@@ -379,13 +406,13 @@ string swiIntegerOut(){
  	string translatedCommand = "";
  	translatedCommand= "if(var1==1){ \n \t printf(\"%d\",var2); \n} ";
  	return translatedCommand;
-} 
+}
 
 string swiCharacterOut(){
   string translatedCommand = "printf(\"%c\" ,var1) \n";
   return translatedCommand;
 }
-                     
+
 string addParser(vector<string> instruction){
   if(instruction.at(0).compare("add")!=0){
   	cout<<"Error in addParser"<<endl;
@@ -411,33 +438,20 @@ string addParser(vector<string> instruction){
   translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";";
   return translatedcommand;
 }
-   
-string decompileSequentialInstruction(vector<string> instruction){
-  string command = instruction[0];
-  if(command.compare("add")==0){
-  	return addParser(instruction);
-  }
-  else if(command.compare("sub")==0){
-  	return subParser(instruction);
-  }
-  else if(command.compare("mul")==0){
-  	return mulParser(instruction);
-  }
-  else if(command.compare("cmp")==0){
-  	return cmpParser(instruction);
-  }
-  else if(command.compare("mov")==0){
-  	return movParser(instruction);
-  }
-  else if(command.compare("swi")==0){
-  	return swiHandler(instruction);
-  }
-  else{
-  	cout<<"Operation not supported by this decompiler"<<endl;
-  }
+void InitialiseCommands(command_map &listx){
+    listx.emplace("add",&addParser);
+    listx.emplace("sub",&subParser);
+    listx.emplace("mul",&mulParser);
+    listx.emplace("cmp",&cmpParser);
+    listx.emplace("mov",&movParser);
+    listx.emplace("swi",&swiHandler);
+
+}
+string decompileSequentialInstruction(vector<string> instruction,command_map listx){
+    return listx.at(instruction.at(0))(instruction);
 }
 void test(){
-  
+
 	// MulParser Test
   cout<<"mulParser() testing..."<<endl;
   cout<<"Input string: mul r2,r2,#11"<<endl;
@@ -449,7 +463,7 @@ void test(){
   cout<<"Output: "<<mulParser(temp)<<endl;
   cout<<endl;
   // MulParser Test ends
-  
+
   //testing subParser
   cout<<"subParser() testing..."<<endl;
   cout<<"Input string: sub r2,r2,#11"<<endl;
@@ -461,29 +475,29 @@ void test(){
   cout<<"Output: "<<subParser(temp1)<<endl;
   cout<<endl;
   // subParser test ends
-    
+
   //cmpParser test begins
   cout<<"cmpParser() testing..."<<endl;
   cout<<"Input string: cmp r2,#11"<<endl;
   vector<string> temp2;
   temp2.push_back("cmp");
   temp2.push_back("r2");
-  temp2.push_back("#11"); 
+  temp2.push_back("#11");
   cout<<"Output: "<<cmpParser(temp2)<<endl;
   cout<<endl;
   // cmpParser test ends
-  
+
   // movParser test begins
   cout<<"movParser() testing..."<<endl;
   cout<<"Input string: mov r2,#11"<<endl;
   vector<string> temp3;
   temp3.push_back("mov");
   temp3.push_back("r2");
-  temp3.push_back("#11"); 
+  temp3.push_back("#11");
   cout<<"Output: "<<movParser(temp3)<<endl;
   cout<<endl;
   // mov parser test ends
-  
+
   //addParser test
   cout<<"addParser() testing..."<<endl;
   cout<<"Input string: add r2,r2,#11"<<endl;
@@ -495,14 +509,14 @@ void test(){
   cout<<"Output: "<<addParser(temp4)<<endl;
   cout<<endl;
   // add parser test ends
-  
+
 }
 
 int main()
 {
-  runConstructor();			
-	preProcessFile();			// Phase 1 - Implemented by Rahul Garg	
-	tokenizeProgram();			// Phase 2 - Implemented by Nihesh Anderson
+  runConstructor();
+  preProcessFile();			// Phase 1 - Implemented by Rahul Garg
+  tokenizeProgram();			// Phase 2 - Implemented by Nihesh Anderson
   defineVariables();			// Declares variables
   dumpCode(sequentialTranslator(Program),"int main()","");  // Translates sequential code and writes to file
   test();								// Write your tests here
