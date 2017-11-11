@@ -4,6 +4,44 @@
 using namespace std;
 typedef string (*FnPtr)(vector<string>);
 typedef std::unordered_map<std::string, FnPtr> command_map;
+
+class Block{	
+	public:
+	int blockID;
+	string Label;
+  vector<vector<string> > instructions;
+  vector<string> breakPoint;
+  vector<int> incomingEdges;
+  vector<int> outgoingEdges;
+  Block(int blockNo, vector<vector<string> > seqInstructions, string label, vector<string> bP){
+    instructions = seqInstructions;
+    blockID = blockNo;
+    Label = label;
+    breakPoint = bP;
+  }
+  int getFarthestIncomingEdge(){
+  	return incomingEdges[incomingEdges.size()-1];
+  }
+  void addIncomingEdge(int source){
+    incomingEdges.push_back(source);
+  }
+  void addOutgoingEdge(int destination){
+  	outgoingEdges.push_back(destination);
+  }
+};
+
+class WhileLoop{
+	public:
+	WhileLoop(int c){
+		startBlock = c;
+	}
+	int startBlock;
+	vector<string> continueConditions;
+	vector<int> continueJumps;
+	vector<string> breakConditions;
+	vector<int> breakJumps;
+};
+
 // Function prototypes
 void InitialiseCommands(command_map &listx);
 string removeComments(string);
@@ -16,7 +54,6 @@ vector<string> cleanUpTokens(vector<string>);
 void writeTokensToFile();
 void runConstructor();
 void test();
-
 string mulParser(vector<string>);
 string movParser(vector<string>);
 string subParser(vector<string>);
@@ -30,13 +67,106 @@ string decompileSequentialInstruction(vector<string>,command_map);
 void defineVariables();
 vector<string> sequentialTranslator(vector<vector<string> >);
 void dumpCode(vector<string>, string, string);
-
-
+void generateControlFlowModel();
+void generateLinks();
+WhileLoop detectWhileEndPoint(int);
+vector<WhileLoop> findWhileLoops();
 
 // Global Variables
 vector<vector<string> > Program;
 int variableCounter = 16; 				// Naming registers as "var"+to_string(variableCounter)
 map<string, int> variableTable;			// One to one mapping of registers and variables
+vector<Block> callFlowModel;
+map<string, int> labelBlock;
+vector<WhileLoop> whileLoops;
+
+WhileLoop detectWhileEndPoint(int c){
+	Block b= callFlowModel[c];
+	WhileLoop temp(c);
+	int i = b.incomingEdges.size()-1;
+	while(b.incomingEdges[i]>=c){
+		temp.continueJumps.push_back(b.incomingEdges[i]);
+		temp.continueConditions.push_back(callFlowModel[b.incomingEdges[i]].breakPoint[0]);
+		i--;
+	}
+	int lastBlock = temp.continueJumps[temp.continueJumps.size()-1];
+	i = lastBlock;
+	while(i>=c){
+		if(labelBlock[callFlowModel[i].breakPoint[1]] = lastBlock+1){
+			temp.breakJumps.push_back(i);
+			temp.breakConditions.push_back(callFlowModel[i].breakPoint[0]);
+		}
+		i--;
+	}
+	return temp;
+}
+
+vector<WhileLoop> findWhileLoops(){
+	vector<WhileLoop> temp;
+	for(int i=0;i<callFlowModel.size();i++){
+		if(callFlowModel[i].Label.compare("")!=0){
+			if(callFlowModel[i].getFarthestIncomingEdge()>=i){
+				temp.push_back(detectWhileEndPoint(i));
+			}
+		}
+	}
+	return temp;
+}
+
+void generateLinks(){
+	int i=0;
+	int blockID = 0;
+	while(i<Program.size()){
+		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && !(Program[i][0].at(0) == 'b')){
+			i++;
+		}
+    if(i<Program.size() && Program[i][0].at(0) == 'b'){
+    	string targetLabel = Program[i][1];
+      int targetBlock = labelBlock[targetLabel];
+      callFlowModel[blockID].addOutgoingEdge(targetBlock);
+      callFlowModel[targetBlock].addIncomingEdge(blockID);
+    }
+		blockID++;
+		i++;
+	}
+}
+
+void generateCallFlowModel(){
+	int i=0;
+	int blockID = 0;
+	string currentLabel = "";
+	while(i<Program.size()){
+		vector<vector<string> > temp;
+		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && !(Program[i][0].at(0) == 'b')){
+			temp.push_back(Program[i]);
+			i++;
+		} 
+	    if(i<Program.size() && Program[i][0].compare("$LABEL$")==0){
+	    	labelBlock[Program[i][1]] = blockID+1;  
+	    }
+	    vector<string> bP;
+	    if(i<Program.size()){
+	    	bP = Program[i];
+	    }
+		Block b(blockID, temp, currentLabel,bP);
+		callFlowModel.push_back(b);   
+		blockID++;
+
+		if(i<Program.size() && Program[i][0].compare("$LABEL$")==0){
+    		currentLabel = Program[i][1];
+    	}
+    	else{
+    		currentLabel = "";
+    	}
+		i++;  
+	}
+  vector<vector<string> > temp;
+  vector<string> bp;
+  Block b(blockID, temp, currentLabel, bp);
+  callFlowModel.push_back(b);
+  generateLinks();
+  whileLoops = findWhileLoops();
+}
 
 vector<string> sequentialTranslator(vector<vector<string> > pgm){
   command_map listx;
@@ -517,8 +647,9 @@ int main()
   runConstructor();
   preProcessFile();			// Phase 1 - Implemented by Rahul Garg
   tokenizeProgram();			// Phase 2 - Implemented by Nihesh Anderson
-  defineVariables();			// Declares variables
-  dumpCode(sequentialTranslator(Program),"int main()","");  // Translates sequential code and writes to file
-  test();								// Write your tests here
+  // defineVariables();			// Declares variables
+//   dumpCode(sequentialTranslator(Program),"int main()","");  // Translates sequential code and writes to file
+//   test();								// Write your tests here
+  generateCallFlowModel();
 	return 0;
 }
