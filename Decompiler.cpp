@@ -5,6 +5,8 @@ using namespace std;
 typedef string (*FnPtr)(vector<string>);
 typedef std::unordered_map<std::string, FnPtr> command_map;
 
+const int varSize = 1000;
+
 class Block{	
 	public:
 	int blockID;
@@ -42,6 +44,23 @@ class WhileLoop{
 	vector<int> breakJumps;
 };
 
+class IfCondition{
+	public:
+		int startBlock;
+		int endBlock;
+		IfCondition(int start, int end){
+			startBlock = start;
+			endBlock = end;
+		}
+};
+
+class ControlTransferCommand{
+  public:
+  vector<string> condition;
+  int block;
+  string type;
+};
+
 // Function prototypes
 void InitialiseCommands(command_map &listx);
 string removeComments(string);
@@ -71,6 +90,8 @@ void generateControlFlowModel();
 void generateLinks();
 WhileLoop detectWhileEndPoint(int);
 vector<WhileLoop> findWhileLoops();
+vector<IfCondition> findIfConditions(); 
+void generateControlTransferCommands();
 
 // Global Variables
 vector<vector<string> > Program;
@@ -79,6 +100,27 @@ map<string, int> variableTable;			// One to one mapping of registers and variabl
 vector<Block> callFlowModel;
 map<string, int> labelBlock;
 vector<WhileLoop> whileLoops;
+vector<IfCondition> ifLoops;
+int breakJumpPoints[varSize];
+ControlTransferCommand jumps[varSize];
+int jumpClosing[varSize];
+
+void generateControlTransferCommands(){
+  ;
+}
+
+vector<IfCondition> findIfConditions(){
+  vector<IfCondition> temp;
+  for(int i=0;i<callFlowModel.size();i++){
+    if(callFlowModel[i].breakPoint[0].at(0) == 'b'){
+      if(labelBlock[callFlowModel[i].breakPoint[1]]-1>=i && breakJumpPoints[i]==0){
+        IfCondition newIf(i, labelBlock[callFlowModel[i].breakPoint[1]]-1);
+        temp.push_back(newIf);
+      }
+    }
+  }
+  return temp;
+}
 
 WhileLoop detectWhileEndPoint(int c){
 	Block b= callFlowModel[c];
@@ -94,6 +136,7 @@ WhileLoop detectWhileEndPoint(int c){
 	while(i>=c){
 		if(labelBlock[callFlowModel[i].breakPoint[1]] = lastBlock+1){
 			temp.breakJumps.push_back(i);
+      breakJumpPoints[i]=1;
 			temp.breakConditions.push_back(callFlowModel[i].breakPoint[0]);
 		}
 		i--;
@@ -132,6 +175,7 @@ void generateLinks(){
 }
 
 void generateCallFlowModel(){
+  memset(breakJumpPoints,0,sizeof(breakJumpPoints));
 	int i=0;
 	int blockID = 0;
 	string currentLabel = "";
@@ -166,6 +210,8 @@ void generateCallFlowModel(){
   callFlowModel.push_back(b);
   generateLinks();
   whileLoops = findWhileLoops();
+  ifLoops = findIfConditions();
+  generateControlTransferCommands();
 }
 
 vector<string> sequentialTranslator(vector<vector<string> > pgm){
