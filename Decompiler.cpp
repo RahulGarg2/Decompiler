@@ -59,6 +59,7 @@ class IfCondition{
 
 class ControlTransferCommand{
   public:
+  int status=0;
   string condition;
   int block;
   string type;
@@ -95,6 +96,7 @@ WhileLoop detectWhileEndPoint(int);
 vector<WhileLoop> findWhileLoops();
 vector<IfCondition> findIfConditions(); 
 void generateControlTransferCommands();
+void GenerateFunctionBody();
 
 string loopTranslator(ControlTransferCommand);
 
@@ -110,16 +112,35 @@ int breakJumpPoints[varSize];
 ControlTransferCommand jumps[varSize];
 int jumpClosing[varSize];
 
+vector<string> GenerateFunctionBody(){
+  vector<string> body;
+  for(int i=0;i<callFlowModel.size();i++){
+    for(int j=0;j<jumpClosing[i];j++){
+      body.push_back("}");
+    }
+    vector<string> sequentialInstructions = sequentialTranslator(callFlowModel[i].instructions);
+    for(int j=0;j<seqInstructions.size();j++){
+      body.push_back(seqInstructions[j]);
+    }
+    if(jumps[i].status==1){
+      body.push_back(loopTranslator(jumps[i]));
+    }
+  }
+  return body;
+}
+
 void generateControlTransferCommands(){
   for(int i=0;i<whileLoops.size();i++){
     ControlTransferCommand temp;
     temp.type = "while";
+    temp.status=1;
     temp.block = whileLoops[i].startBlock-1;
     temp.condition = whileLoops[i].continueConditions[whileLoops[i].continueConditions.size()-1];
     jumps[whileLoops[i].startBlock] = temp;
     jumpClosing[whileLoops[i].continueJumps[whileLoops[i].continueJumps.size()-1]]++;
     for(int j=0;j<whileLoops[i].continueJumps.size()-1;j++){
       ControlTransferCommand temp2;
+      temp2.status=1;
       temp2.block = whileLoops[i].continueJumps[j];
       temp2.type = "continue";
       temp2.condition = whileLoops[i].continueConditions[j];
@@ -127,6 +148,7 @@ void generateControlTransferCommands(){
     }
     for(int j=0;j<whileLoops[i].breakJumps.size();j++){
       ControlTransferCommand temp2;
+      temp2.status=1;
       temp2.block = whileLoops[i].breakJumps[j];
       temp2.type = "break";
       temp2.condition = whileLoops[i].breakConditions[j];
@@ -135,6 +157,10 @@ void generateControlTransferCommands(){
   }
   for(int i=0;i<ifLoops.size();i++){
     ControlTransferCommand temp2;
+    if(jumps[ifLoops[i].startBlock].status==1){
+      continue;
+    }
+    temp2.status=1;
     temp2.block = ifLoops[i].startBlock;
     temp2.type = "if";
     temp2.condition = ifLoops[i].condition;
@@ -196,30 +222,30 @@ string loopTranslator(ControlTransferCommand c)
 	{
 		if(c.condition.compare("bge"))
 		{
-			command="while(compareRegister >= 0){"
+			command="while(compareRegister >= 0){";
 		}
 		else if(c.condition.compare("ble"))
 		{
-			command="while(compareRegister < 0){"
+			command="while(compareRegister < 0){";
 		}
 	}
 	else if(c.type.compare("continue"))
 	{
-		command="if(true){ \n continue ; \n }"
+		command="if(true){ \n continue ; \n }";
 	}
 	else if(c.type.compare("break"))
 	{
-		command="if(true){ \n break; \n }"
+		command="if(true){ \n break; \n }";
 	}
 	else if(c.type.compare("if"))
 	{
 		if(c.condition.compare("bge"))
 		{
-			command="if(compareRegister >= 0){"
+			command="if(compareRegister >= 0){";
 		}
 		else if(c.condition.compare("ble"))
 		{
-			command="if(compareRegister < 0){"
+			command="if(compareRegister < 0){";
 		}
 	}
 	return command;
@@ -290,6 +316,10 @@ void generateCallFlowModel(){
   whileLoops = findWhileLoops();
   ifLoops = findIfConditions();
   generateControlTransferCommands();
+  vector<string> body = GenerateFunctionBody();
+  for(int i=0;i<body.size();i++){
+    cout<<body[i]<<endl;
+  }
 }
 
 vector<string> sequentialTranslator(vector<vector<string> > pgm){
