@@ -136,10 +136,10 @@ void generateControlTransferCommands(){
     temp.type = "while";
     temp.status=1;
     temp.block = whileLoops[i].startBlock-1;
-    temp.condition = whileLoops[i].continueConditions[whileLoops[i].continueConditions.size()-1];
+    temp.condition = whileLoops[i].continueConditions[0];
     jumps[whileLoops[i].startBlock-1] = temp;
-    jumpClosing[whileLoops[i].continueJumps[whileLoops[i].continueJumps.size()-1]]++;
-    for(int j=0;j<whileLoops[i].continueJumps.size()-1;j++){
+    jumpClosing[whileLoops[i].continueJumps[0]]++;
+    for(int j=1;j<whileLoops[i].continueJumps.size();j++){
       ControlTransferCommand temp2;
       temp2.status=1;
       temp2.block = whileLoops[i].continueJumps[j];
@@ -191,7 +191,7 @@ WhileLoop detectWhileEndPoint(int c){
 		temp.continueConditions.push_back(callFlowModel[b.incomingEdges[i]].breakPoint[0]);
 		i--;
 	}
-	int lastBlock = temp.continueJumps[temp.continueJumps.size()-1];
+	int lastBlock = temp.continueJumps[0];
 	i = lastBlock;
 	while(i>=c){
 		if(labelBlock[callFlowModel[i].breakPoint[1]] == lastBlock+1){
@@ -382,7 +382,7 @@ void generateCallFlowModel(){
 	    }
 	    vector<string> bP;
 	      if(i == Program.size() && (Program[i-1][0].at(0) == 'b')){
-	        bP = Program[i];
+	        bP = Program[i-1];
 	      }
 		    else if(i<Program.size()){
 		    	bP = Program[i];
