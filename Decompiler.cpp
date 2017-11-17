@@ -96,6 +96,8 @@ vector<IfCondition> findIfConditions();
 void generateControlTransferCommands();
 vector<string> GenerateFunctionBody();
 string loopTranslator(ControlTransferCommand);
+string addsParser(vector<string>);
+string subsParser(vector<string>);
 
 // Global Variables
 vector<vector<string> > Program;
@@ -112,12 +114,12 @@ int jumpClosing[varSize];
 vector<string> GenerateFunctionBody(){
   vector<string> body;
   for(int i=0;i<callFlowModel.size();i++){
-    for(int j=0;j<jumpClosing[i];j++){
-      body.push_back("}");
-    }
     vector<string> sequentialInstructions = sequentialTranslator(callFlowModel[i].instructions);
     for(int j=0;j<sequentialInstructions.size();j++){
       body.push_back(sequentialInstructions[j]);
+    }
+    for(int j=0;j<jumpClosing[i];j++){
+      body.push_back("}");
     }
     if(jumps[i].status==1){
       body.push_back(loopTranslator(jumps[i]));
@@ -133,7 +135,7 @@ void generateControlTransferCommands(){
     temp.status=1;
     temp.block = whileLoops[i].startBlock-1;
     temp.condition = whileLoops[i].continueConditions[whileLoops[i].continueConditions.size()-1];
-    jumps[whileLoops[i].startBlock] = temp;
+    jumps[whileLoops[i].startBlock-1] = temp;
     jumpClosing[whileLoops[i].continueJumps[whileLoops[i].continueJumps.size()-1]]++;
     for(int j=0;j<whileLoops[i].continueJumps.size()-1;j++){
       ControlTransferCommand temp2;
@@ -190,9 +192,9 @@ WhileLoop detectWhileEndPoint(int c){
 	int lastBlock = temp.continueJumps[temp.continueJumps.size()-1];
 	i = lastBlock;
 	while(i>=c){
-		if(labelBlock[callFlowModel[i].breakPoint[1]] = lastBlock+1){
+		if(labelBlock[callFlowModel[i].breakPoint[1]] == lastBlock+1){
 			temp.breakJumps.push_back(i);
-      breakJumpPoints[i]=1;
+      		breakJumpPoints[i]=1;
 			temp.breakConditions.push_back(callFlowModel[i].breakPoint[0]);
 		}
 		i--;
@@ -361,7 +363,6 @@ void generateLinks(){
 		i++;
 	}
 }
-
 void generateCallFlowModel(){
   memset(jumpClosing,0,sizeof(jumpClosing));
   memset(breakJumpPoints,0,sizeof(breakJumpPoints));
@@ -378,15 +379,15 @@ void generateCallFlowModel(){
 	    	labelBlock[Program[i][1]] = blockID+1;  
 	    }
 	    vector<string> bP;
-      if(i == Program.size() && (Program[i-1][0].at(0) == 'b')){
-        bP = Program[i];
-      }
-	    else if(i<Program.size()){
-	    	bP = Program[i];
-	    }
-      else{
-        bP.push_back("empty");
-      }
+	      if(i == Program.size() && (Program[i-1][0].at(0) == 'b')){
+	        bP = Program[i];
+	      }
+		    else if(i<Program.size()){
+		    	bP = Program[i];
+		    }
+	      else{
+	        bP.push_back("empty");
+	      }
 		Block b(blockID, temp, currentLabel,bP);
 		callFlowModel.push_back(b);   
 		blockID++;
@@ -398,8 +399,7 @@ void generateCallFlowModel(){
     		currentLabel = "";
     	}
 		i++;  
-	}
-  vector<vector<string> > temp;
+	}  vector<vector<string> > temp;
   vector<string> bp;
   bp.push_back("empty");
   Block b(blockID, temp, currentLabel, bp);
@@ -814,6 +814,56 @@ string addParser(vector<string> instruction){
   translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";";
   return translatedcommand;
 }
+string subsParser(vector<string> instruction){
+  if(instruction[0].compare("subs")!=0){
+   	cout<<"Error in subsParser"<<endl;
+  }
+  string translatedCommand =  "";
+  string targetRegister = instruction[1];
+  string sourceRegister1 = instruction[2];
+  string sourceRegister2 = instruction[3];
+  string targetTransform = "var" + to_string(variableTable[targetRegister]);
+  string sourceTransform1,sourceTransform2;
+  if(sourceRegister1.at(0)!='#'){
+		sourceTransform1 ="var"+ to_string(variableTable[sourceRegister1]);
+  }
+  else{
+    sourceTransform1 = sourceRegister1.substr(1);
+  }
+  if(sourceRegister2.at(0)!='#'){
+		sourceTransform2 ="var" + to_string(variableTable[sourceRegister2]);
+  }
+  else{
+     sourceTransform2 = sourceRegister2.substr(1);
+  }
+  translatedCommand = targetTransform+" = "+sourceTransform1+" - "+sourceTransform2+";"+"\n"+"compareRegister = "+sourceTransform1+" - "+sourceTransform2+";";
+  return translatedCommand;
+}
+string addsParser(vector<string> instruction){
+  if(instruction.at(0).compare("adds")!=0){
+  	cout<<"Error in addsParser"<<endl;
+  }
+  string translatedcommand = "";
+  string Tregister=instruction.at(1);
+  string S1register = instruction.at(2);
+  string S2register = instruction.at(3);
+  string targetTransform = "var" +to_string(variableTable[Tregister]);
+  string sourceTransform1,sourceTransform2;
+  if(S1register.at(0)!='#'){
+			sourceTransform1 = "var" + to_string(variableTable[S1register]);
+  }
+  else{
+  		sourceTransform1 = S1register.substr(1);
+  }
+  if(S2register.at(0)!='#'){
+			sourceTransform2 = "var" + to_string(variableTable[S2register]);
+  }
+  else{
+  		sourceTransform2 = S2register.substr(1);
+  }
+  translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";"+ "\n"+"compareRegister = "+sourceTransform1 +" + "+ sourceTransform2+";";
+  return translatedcommand;
+}
 void InitialiseCommands(command_map &listx){
     listx.emplace("add",&addParser);
     listx.emplace("sub",&subParser);
@@ -821,9 +871,8 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("cmp",&cmpParser);
     listx.emplace("mov",&movParser);
     listx.emplace("swi",&swiHandler);
-    listx.emplace("adds",&addParser);
-    listx.emplace("subs",&subParser);
-
+    listx.emplace("adds",&addsParser);
+    listx.emplace("subs",&subsParser);
 }
 string decompileSequentialInstruction(vector<string> instruction,command_map listx){
     return listx.at(instruction.at(0))(instruction);
