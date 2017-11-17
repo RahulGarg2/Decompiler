@@ -699,6 +699,8 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("cmp",&cmpParser);
     listx.emplace("mov",&movParser);
     listx.emplace("swi",&swiHandler);
+    listx.emplace("adds",&addParser);
+    listx.emplace("subs",&subParser);
 
 }
 string decompileSequentialInstruction(vector<string> instruction,command_map listx){
