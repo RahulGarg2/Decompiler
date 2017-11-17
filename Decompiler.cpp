@@ -166,6 +166,7 @@ void generateControlTransferCommands(){
     temp2.type = "if";
     temp2.condition = ifLoops[i].condition;
     jumps[ifLoops[i].startBlock] = temp2;
+    jumpClosing[ifLoops[i].endBlock]++;
   }
 }
 
@@ -223,27 +224,27 @@ string loopTranslator(ControlTransferCommand c)
 	{
 		if(c.condition.compare("bgt")==0)
 		{
-			command="while(compareRegister > 0){";
+			command="whileFlag = 0;\nwhile(whileFlag==0 || compareRegister > 0){\nwhileFlag = 1";
 		}
 		else if(c.condition.compare("ble")==0)
 		{
-			command="while(compareRegister <= 0){";
+			command="whileFlag = 0;\nwhile(whileFlag==0 || compareRegister <= 0){\nwhileFlag = 1";
 		}
 		else if(c.condition.compare("blt")==0)
 		{
-			command="while(compareRegister < 0){";
+			command="whileFlag = 0;\nwhile(whileFlag==0 || compareRegister < 0){\nwhileFlag = 1";
 		}
 		else if(c.condition.compare("bge")==0)
 		{
-			command="while(compareRegister >= 0){";
+			command="whileFlag = 0;\nwhile(whileFlag==0 || compareRegister >= 0){\nwhileFlag = 1";
 		}
 		else if(c.condition.compare("bne")==0)
 		{
-			command="while(compareRegister != 0){";
+			command="whileFlag = 0;\nwhile(whileFlag==0 || compareRegister != 0){\nwhileFlag = 1";
 		}
 		else if(c.condition.compare("beq")==0)
 		{
-			command="while(compareRegister == 0){";
+			command="whileFlag = 0;\nwhile(whileFlag==0 || compareRegister == 0){\nwhileFlag = 1";
 		}
 		else if(c.condition.compare("b")==0)
 		{
@@ -313,35 +314,35 @@ string loopTranslator(ControlTransferCommand c)
 		}
 	
 	}
-	else if(c.type.compare("if")==0)
+	else if(c.type.compare("if")==0)				// Inverted on purpose
 	{
 		if(c.condition.compare("bgt")==0)
 		{
-			command="if(compareRegister > 0){";
+			command="if(compareRegister <= 0){";
 		}
 		else if(c.condition.compare("ble")==0)
 		{
-			command="if(compareRegister <= 0){";
+			command="if(compareRegister > 0){";
 		}
 		else if(c.condition.compare("blt")==0)
 		{
-			command="if(compareRegister < 0){";
+			command="if(compareRegister >= 0){";
 		}
 		else if(c.condition.compare("bge")==0)
 		{
-			command="if(compareRegister >= 0){";
+			command="if(compareRegister < 0){";
 		}
 		else if(c.condition.compare("bne")==0)
 		{
-			command="if(compareRegister != 0){";
+			command="if(compareRegister == 0){";
 		}
 		else if(c.condition.compare("beq")==0)
 		{
-			command="if(compareRegister == 0){";
+			command="if(compareRegister != 0){";
 		}
 		else if(c.condition.compare("b")==0)
 		{
-			command="if(true){";
+			command="if(false){";
 		}
 	}
 	return command;
@@ -449,10 +450,10 @@ string swiHandler(vector<string> instruction){
 	return swiCharacterOut();
   }
   else if(instruction[1].compare("0x6b")==0){
-  	return swiIntegerIn();
+  	return swiIntegerOut();
   }
   else if(instruction[1].compare("0x6c")==0){
-  	return swiIntegerOut();
+  	return swiIntegerIn();
   }
   else if(instruction[1].compare("0x11")==0){
   	return "exit(0);";
@@ -472,6 +473,7 @@ void defineVariables(){
   fout<<endl;
   fout<<"// Program Variables"<<endl;
   fout<<"int compareRegister = 0;"<<endl;
+  fout<<"int whileFlag;"<<endl;
   for(int i=1; i<variableCounter; i++){
   	fout<<"int var"<<i<<" = 0;"<<endl;
   }
