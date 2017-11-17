@@ -153,7 +153,7 @@ void generateControlTransferCommands(){
       temp2.block = whileLoops[i].breakJumps[j];
       temp2.type = "break";
       temp2.condition = whileLoops[i].breakConditions[j];
-      jumps[whileLoops[i].continueJumps[j]] = temp2;
+      jumps[whileLoops[i].breakJumps[j]] = temp2;
     }
   }
   for(int i=0;i<ifLoops.size();i++){
