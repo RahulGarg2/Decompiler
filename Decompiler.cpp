@@ -814,6 +814,57 @@ string addParser(vector<string> instruction){
   translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";";
   return translatedcommand;
 }
+string subsParser(vector<string> instruction){
+  if(instruction[0].compare("subs")!=0){
+   	cout<<"Error in subsParser"<<endl;
+  }
+  string translatedCommand =  "";
+  string targetRegister = instruction[1];
+  string sourceRegister1 = instruction[2];
+  string sourceRegister2 = instruction[3];
+  string targetTransform = "var" + to_string(variableTable[targetRegister]);
+  string sourceTransform1,sourceTransform2;
+  if(sourceRegister1.at(0)!='#'){
+		sourceTransform1 ="var"+ to_string(variableTable[sourceRegister1]);
+  }
+  else{
+    sourceTransform1 = sourceRegister1.substr(1);
+  }
+  if(sourceRegister2.at(0)!='#'){
+		sourceTransform2 ="var" + to_string(variableTable[sourceRegister2]);
+  }
+  else{
+     sourceTransform2 = sourceRegister2.substr(1);
+  }
+  translatedCommand = targetTransform+" = "+sourceTransform1+" - "+sourceTransform2+";"+"\n"+"compareRegister = "+sourceTransform1+" - "+sourceTransform2+";";
+  return translatedCommand;
+}
+string addsParser(vector<string> instruction){
+  if(instruction.at(0).compare("adds")!=0){
+  	cout<<"Error in addsParser"<<endl;
+  }
+  string translatedcommand = "";
+  string Tregister=instruction.at(1);
+  string S1register = instruction.at(2);
+  string S2register = instruction.at(3);
+  string targetTransform = "var" +to_string(variableTable[Tregister]);
+  string sourceTransform1,sourceTransform2;
+  if(S1register.at(0)!='#'){
+			sourceTransform1 = "var" + to_string(variableTable[S1register]);
+  }
+  else{
+  		sourceTransform1 = S1register.substr(1);
+  }
+  if(S2register.at(0)!='#'){
+			sourceTransform2 = "var" + to_string(variableTable[S2register]);
+  }
+  else{
+  		sourceTransform2 = S2register.substr(1);
+  }
+  translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";"+ "\n"+"compareRegister = "+sourceTransform1 +" + "+ sourceTransform2+";";
+  return translatedcommand;
+}
+
 void InitialiseCommands(command_map &listx){
     listx.emplace("add",&addParser);
     listx.emplace("sub",&subParser);
@@ -825,6 +876,7 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("subs",&subParser);
 
 }
+
 string decompileSequentialInstruction(vector<string> instruction,command_map listx){
     return listx.at(instruction.at(0))(instruction);
 }
