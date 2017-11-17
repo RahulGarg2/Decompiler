@@ -94,8 +94,7 @@ WhileLoop detectWhileEndPoint(int);
 vector<WhileLoop> findWhileLoops();
 vector<IfCondition> findIfConditions(); 
 void generateControlTransferCommands();
-void GenerateFunctionBody();
-
+vector<string> GenerateFunctionBody();
 string loopTranslator(ControlTransferCommand);
 
 // Global Variables
@@ -117,8 +116,8 @@ vector<string> GenerateFunctionBody(){
       body.push_back("}");
     }
     vector<string> sequentialInstructions = sequentialTranslator(callFlowModel[i].instructions);
-    for(int j=0;j<seqInstructions.size();j++){
-      body.push_back(seqInstructions[j]);
+    for(int j=0;j<sequentialInstructions.size();j++){
+      body.push_back(sequentialInstructions[j]);
     }
     if(jumps[i].status==1){
       body.push_back(loopTranslator(jumps[i]));
@@ -216,127 +215,127 @@ vector<WhileLoop> findWhileLoops(){
 string loopTranslator(ControlTransferCommand c)
 {
 	string command="";
-	if(c.type.compare("while"))
+	if(c.type.compare("while")==0)
 	{
-		if(c.condition.compare("bgt"))
+		if(c.condition.compare("bgt")==0)
 		{
 			command="while(compareRegister > 0){";
 		}
-		else if(c.condition.compare("ble"))
+		else if(c.condition.compare("ble")==0)
 		{
 			command="while(compareRegister <= 0){";
 		}
-		else if(c.condititon.compare("blt"))
+		else if(c.condition.compare("blt")==0)
 		{
 			command="while(compareRegister < 0){";
 		}
-		else if(c.condititon.compare("bge"))
+		else if(c.condition.compare("bge")==0)
 		{
 			command="while(compareRegister >= 0){";
 		}
-		else if(c.condititon.compare("bne"))
+		else if(c.condition.compare("bne")==0)
 		{
 			command="while(compareRegister != 0){";
 		}
-		else if(c.condititon.compare("beq"))
+		else if(c.condition.compare("beq")==0)
 		{
 			command="while(compareRegister == 0){";
 		}
-		else if(c.condition.compare("b"))
+		else if(c.condition.compare("b")==0)
 		{
 			command="while(true){";
 		}
 	}
-	else if(c.type.compare("continue"))
+	else if(c.type.compare("continue")==0)
 	{
-		if(c.condition.compare("bgt"))
+		if(c.condition.compare("bgt")==0)
 		{
 			command="if(compareRegister > 0){ \n continue; \n }";
 		}
-		else if(c.condition.compare("ble"))
+		else if(c.condition.compare("ble")==0)
 		{
 			command="if(compareRegister <= 0){ \n continue; \n }";
 		}
-		else if(c.condititon.compare("blt"))
+		else if(c.condition.compare("blt")==0)
 		{
 			command="if(compareRegister < 0){ \n continue; \n }";
 		}
-		else if(c.condititon.compare("bge"))
+		else if(c.condition.compare("bge")==0)
 		{
 			command="if(compareRegister >= 0){ \n continue; \n }";
 		}
-		else if(c.condititon.compare("bne"))
+		else if(c.condition.compare("bne")==0)
 		{
 			command="if(compareRegister != 0){ \n continue; \n }";
 		}
-		else if(c.condititon.compare("beq"))
+		else if(c.condition.compare("beq")==0)
 		{
 			command="if(compareRegister == 0){ \n continue; \n }";
 		}
-		else if(c.condition.compare("b"))
+		else if(c.condition.compare("b")==0)
 		{
 			command="if(true){ \n continue; \n }";
 		}
 	}
-	else if(c.type.compare("break"))
+	else if(c.type.compare("break")==0)
 	{
-		if(c.condition.compare("bgt"))
+		if(c.condition.compare("bgt")==0)
 		{
 			command="if(compareRegister > 0){ \n break; \n }";
 		}
-		else if(c.condition.compare("ble"))
+		else if(c.condition.compare("ble")==0)
 		{
 			command="if(compareRegister <= 0){ \n break; \n }";
 		}
-		else if(c.condititon.compare("blt"))
+		else if(c.condition.compare("blt")==0)
 		{
 			command="if(compareRegister < 0){ \n break; \n }";
 		}
-		else if(c.condititon.compare("bge"))
+		else if(c.condition.compare("bge")==0)
 		{
 			command="if(compareRegister >= 0){ \n break; \n }";
 		}
-		else if(c.condititon.compare("bne"))
+		else if(c.condition.compare("bne")==0)
 		{
 			command="if(compareRegister != 0){ \n break; \n }";
 		}
-		else if(c.condititon.compare("beq"))
+		else if(c.condition.compare("beq")==0)
 		{
 			command="if(compareRegister == 0){ \n break; \n }";
 		}
-		else if(c.condition.compare("b"))
+		else if(c.condition.compare("b")==0)
 		{
 			command="if(true){ \n break; \n }";
 		}
 	
 	}
-	else if(c.type.compare("if"))
+	else if(c.type.compare("if")==0)
 	{
-		if(c.condition.compare("bgt"))
+		if(c.condition.compare("bgt")==0)
 		{
 			command="if(compareRegister > 0){";
 		}
-		else if(c.condition.compare("ble"))
+		else if(c.condition.compare("ble")==0)
 		{
 			command="if(compareRegister <= 0){";
 		}
-		else if(c.condititon.compare("blt"))
+		else if(c.condition.compare("blt")==0)
 		{
 			command="if(compareRegister < 0){";
 		}
-		else if(c.condititon.compare("bge"))
+		else if(c.condition.compare("bge")==0)
 		{
 			command="if(compareRegister >= 0){";
 		}
-		else if(c.condititon.compare("bne"))
+		else if(c.condition.compare("bne")==0)
 		{
 			command="if(compareRegister != 0){";
 		}
-		else if(c.condititon.compare("beq"))
+		else if(c.condition.compare("beq")==0)
 		{
 			command="if(compareRegister == 0){";
 		}
-		else if(c.condition.compare("b"))
+		else if(c.condition.compare("b")==0)
 		{
 			command="if(true){";
 		}
