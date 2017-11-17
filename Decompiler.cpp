@@ -84,6 +84,8 @@ string swiIntegerOut();
 string swiCharacterOut();
 string swiHandler(vector<string>);
 string addParser(vector<string>);
+string addsParser(vector<string>);
+string subsParser(vector<string>);
 string decompileSequentialInstruction(vector<string>,command_map);
 void defineVariables();
 vector<string> sequentialTranslator(vector<vector<string> >);
@@ -872,8 +874,8 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("cmp",&cmpParser);
     listx.emplace("mov",&movParser);
     listx.emplace("swi",&swiHandler);
-    listx.emplace("adds",&addParser);
-    listx.emplace("subs",&subParser);
+    listx.emplace("adds",&addsParser);
+    listx.emplace("subs",&subsParser);
 
 }
 
