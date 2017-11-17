@@ -1,5 +1,4 @@
 
-
 #include<bits/stdc++.h>
 
 using namespace std;
@@ -194,32 +193,127 @@ string loopTranslator(ControlTransferCommand c)
 	string command="";
 	if(c.type.compare("while"))
 	{
-		if(c.condition.compare("bge"))
+		if(c.condition.compare("bgt"))
 		{
-			command="while(compareRegister >= 0){"
+			command="while(compareRegister > 0){"
 		}
 		else if(c.condition.compare("ble"))
 		{
+			command="while(compareRegister <= 0){"
+		}
+		else if(c.condititon.compare("blt"))
+		{
 			command="while(compareRegister < 0){"
+		}
+		else if(c.condititon.compare("bge"))
+		{
+			command="while(compareRegister >= 0){"
+		}
+		else if(c.condititon.compare("bne"))
+		{
+			command="while(compareRegister != 0){"
+		}
+		else if(c.condititon.compare("beq"))
+		{
+			command="while(compareRegister == 0){"
+		}
+		else if(c.condition.compare("b"))
+		{
+			command="while(true){"
 		}
 	}
 	else if(c.type.compare("continue"))
 	{
-		command="if(true){ \n continue ; \n }"
-	}
-	else if(c.type.compare("break"))
-	{
-		command="if(true){ \n break; \n }"
-	}
-	else if(c.type.compare("if"))
-	{
-		if(c.condition.compare("bge"))
+		if(c.condition.compare("bgt"))
 		{
-			command="if(compareRegister >= 0){"
+			command="if(compareRegister > 0){ \n continue; \n }"
 		}
 		else if(c.condition.compare("ble"))
 		{
+			command="if(compareRegister <= 0){ \n continue; \n }"
+		}
+		else if(c.condititon.compare("blt"))
+		{
+			command="if(compareRegister < 0){ \n continue; \n }"
+		}
+		else if(c.condititon.compare("bge"))
+		{
+			command="if(compareRegister >= 0){ \n continue; \n }"
+		}
+		else if(c.condititon.compare("bne"))
+		{
+			command="if(compareRegister != 0){ \n continue; \n }"
+		}
+		else if(c.condititon.compare("beq"))
+		{
+			command="if(compareRegister == 0){ \n continue; \n }"
+		}
+		else if(c.condition.compare("b"))
+		{
+			command="if(true){ \n continue; \n }"
+		}
+	}
+	else if(c.type.compare("break"))
+	{
+		if(c.condition.compare("bgt"))
+		{
+			command="if(compareRegister > 0){ \n break; \n }"
+		}
+		else if(c.condition.compare("ble"))
+		{
+			command="if(compareRegister <= 0){ \n break; \n }"
+		}
+		else if(c.condititon.compare("blt"))
+		{
+			command="if(compareRegister < 0){ \n break; \n }"
+		}
+		else if(c.condititon.compare("bge"))
+		{
+			command="if(compareRegister >= 0){ \n break; \n }"
+		}
+		else if(c.condititon.compare("bne"))
+		{
+			command="if(compareRegister != 0){ \n break; \n }"
+		}
+		else if(c.condititon.compare("beq"))
+		{
+			command="if(compareRegister == 0){ \n break; \n }"
+		}
+		else if(c.condition.compare("b"))
+		{
+			command="if(true){ \n break; \n }"
+		}
+	
+	}
+	else if(c.type.compare("if"))
+	{
+		if(c.condition.compare("bgt"))
+		{
+			command="if(compareRegister > 0){"
+		}
+		else if(c.condition.compare("ble"))
+		{
+			command="if(compareRegister <= 0){"
+		}
+		else if(c.condititon.compare("blt"))
+		{
 			command="if(compareRegister < 0){"
+		}
+		else if(c.condititon.compare("bge"))
+		{
+			command="if(compareRegister >= 0){"
+		}
+		else if(c.condititon.compare("bne"))
+		{
+			command="if(compareRegister != 0){"
+		}
+		else if(c.condititon.compare("beq"))
+		{
+			command="if(compareRegister == 0){"
+		}
+		else if(c.condition.compare("b"))
+		{
+			command="if(true){"
 		}
 	}
 	return command;
