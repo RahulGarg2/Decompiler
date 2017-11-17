@@ -56,7 +56,7 @@ class IfCondition{
 
 class ControlTransferCommand{
   public:
-  vector<string> condition;
+  string condition;
   int block;
   string type;
 };
@@ -106,7 +106,31 @@ ControlTransferCommand jumps[varSize];
 int jumpClosing[varSize];
 
 void generateControlTransferCommands(){
-  ;
+  for(int i=0;i<whileLoops.size();i++){
+    ControlTransferCommand temp;
+    temp.type = "while";
+    temp.block = whileLoops[i].startBlock-1;
+    temp.condition = whileLoops[i].continueConditions[whileLoops[i].continueConditions.size()-1];
+    jumps[whileLoops[i].startBlock] = temp;
+    jumpClosing[whileLoops[i].continueJumps[whileLoops[i].continueJumps.size()-1]]++;
+    for(int j=0;j<whileLoops[i].continueJumps.size()-1;j++){
+      ControlTransferCommand temp2;
+      temp2.block = whileLoops[i].continueJumps[j];
+      temp2.type = "continue";
+      temp2.condition = whileLoops[i].continueConditions[j];
+      jumps[whileLoops[i].continueJumps[j]] = temp2;
+    }
+    for(int j=0;j<whileLoops[i].breakJumps.size();j++){
+      ControlTransferCommand temp2;
+      temp2.block = whileLoops[i].breakJumps[j];
+      temp2.type = "break";
+      temp2.condition = whileLoops[i].breakConditions[j];
+      jumps[whileLoops[i].continueJumps[j]] = temp2;
+    }
+  }
+  for(int i=0;i<ifLoops.size();i++){
+    
+  }
 }
 
 vector<IfCondition> findIfConditions(){
@@ -175,6 +199,7 @@ void generateLinks(){
 }
 
 void generateCallFlowModel(){
+  memset(jumpClosing,0,sizeof(jumpClosing));
   memset(breakJumpPoints,0,sizeof(breakJumpPoints));
 	int i=0;
 	int blockID = 0;
@@ -189,9 +214,15 @@ void generateCallFlowModel(){
 	    	labelBlock[Program[i][1]] = blockID+1;  
 	    }
 	    vector<string> bP;
-	    if(i<Program.size()){
+      if(i == Program.size() && (Program[i-1][0].at(0) == 'b')){
+        bP = Program[i];
+      }
+	    else if(i<Program.size()){
 	    	bP = Program[i];
 	    }
+      else{
+        bP.push_back("empty");
+      }
 		Block b(blockID, temp, currentLabel,bP);
 		callFlowModel.push_back(b);   
 		blockID++;
@@ -206,6 +237,7 @@ void generateCallFlowModel(){
 	}
   vector<vector<string> > temp;
   vector<string> bp;
+  bp.push_back("empty");
   Block b(blockID, temp, currentLabel, bp);
   callFlowModel.push_back(b);
   generateLinks();
