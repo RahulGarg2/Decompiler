@@ -1,4 +1,5 @@
 
+
 #include<bits/stdc++.h>
 
 using namespace std;
@@ -95,6 +96,8 @@ vector<WhileLoop> findWhileLoops();
 vector<IfCondition> findIfConditions(); 
 void generateControlTransferCommands();
 
+string loopTranslator(ControlTransferCommand);
+
 // Global Variables
 vector<vector<string> > Program;
 int variableCounter = 16; 				// Naming registers as "var"+to_string(variableCounter)
@@ -184,6 +187,43 @@ vector<WhileLoop> findWhileLoops(){
 		}
 	}
 	return temp;
+}
+
+string loopTranslator(ControlTransferCommand c)
+{
+	string command="";
+	if(c.type.compare("while"))
+	{
+		if(c.condition.compare("bge"))
+		{
+			command="while(compareRegister >= 0){"
+		}
+		else if(c.condition.compare("ble"))
+		{
+			command="while(compareRegister < 0){"
+		}
+	}
+	else if(c.type.compare("continue"))
+	{
+		command="if(true){ \n continue ; \n }"
+	}
+	else if(c.type.compare("break"))
+	{
+		command="if(true){ \n break; \n }"
+	}
+	else if(c.type.compare("if"))
+	{
+		if(c.condition.compare("bge"))
+		{
+			command="if(compareRegister >= 0){"
+		}
+		else if(c.condition.compare("ble"))
+		{
+			command="if(compareRegister < 0){"
+		}
+	}
+	return command;
+
 }
 
 void generateLinks(){
@@ -737,3 +777,4 @@ int main()
   generateCallFlowModel();
 	return 0;
 }
+
