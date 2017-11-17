@@ -866,10 +866,6 @@ string addsParser(vector<string> instruction){
   translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";"+ "\n"+"compareRegister = "+sourceTransform1 +" + "+ sourceTransform2+";";
   return translatedcommand;
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> 05f23a7eb8ce377638fd619c61552e81882e53e2
 void InitialiseCommands(command_map &listx){
     listx.emplace("add",&addParser);
     listx.emplace("sub",&subParser);
@@ -879,10 +875,6 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("swi",&swiHandler);
     listx.emplace("adds",&addsParser);
     listx.emplace("subs",&subsParser);
-<<<<<<< HEAD
-=======
-
->>>>>>> 05f23a7eb8ce377638fd619c61552e81882e53e2
 }
 
 string decompileSequentialInstruction(vector<string> instruction,command_map listx){
