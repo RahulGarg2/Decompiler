@@ -195,7 +195,7 @@ WhileLoop detectWhileEndPoint(int c){
 	int lastBlock = temp.continueJumps[0];
 	i = lastBlock;
 	while(i>=c){
-		if(labelBlock[callFlowModel[i].breakPoint[1]] == lastBlock+2){
+		if(labelBlock[callFlowModel[i].breakPoint[1]] == lastBlock+2 && callFlowModel[lastBlock+1].instructions.size()==0){
 			temp.breakJumps.push_back(i);
       		breakJumpPoints[i]=1;
 			temp.breakConditions.push_back(callFlowModel[i].breakPoint[0]);
