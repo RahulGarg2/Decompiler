@@ -48,9 +48,11 @@ class IfCondition{
 	public:
 		int startBlock;
 		int endBlock;
-		IfCondition(int start, int end){
+    string condition;
+		IfCondition(int start, int end, string jump){
 			startBlock = start;
 			endBlock = end;
+      condition = jump;
 		}
 };
 
@@ -129,7 +131,11 @@ void generateControlTransferCommands(){
     }
   }
   for(int i=0;i<ifLoops.size();i++){
-    
+    ControlTransferCommand temp2;
+    temp2.block = ifLoops[i].startBlock;
+    temp2.type = "if";
+    temp2.condition = ifLoops[i].condition;
+    jumps[ifLoops[i].startBlock] = temp2;
   }
 }
 
@@ -138,7 +144,7 @@ vector<IfCondition> findIfConditions(){
   for(int i=0;i<callFlowModel.size();i++){
     if(callFlowModel[i].breakPoint[0].at(0) == 'b'){
       if(labelBlock[callFlowModel[i].breakPoint[1]]-1>=i && breakJumpPoints[i]==0){
-        IfCondition newIf(i, labelBlock[callFlowModel[i].breakPoint[1]]-1);
+        IfCondition newIf(i, labelBlock[callFlowModel[i].breakPoint[1]]-1, callFlowModel[i].breakPoint[0]);
         temp.push_back(newIf);
       }
     }
