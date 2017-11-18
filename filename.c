@@ -1,18 +1,38 @@
-mov;r0;#0;
-swi;0x6c;
-mov;r1;r0;
-mov;r2;#0;
-mov;r3;#0;
-$LABEL$;loop;
-mov;r0;#0;
-swi;0x6c;
-add;r2;r2;r0;
-add;r3;r3;#1;
-cmp;r3;r1;
-bge;loop_exit;
-b;loop;
-$LABEL$;loop_exit;
-mov;r0;#1;
-mov;r1;r2;
-swi;0x6b;
-swi;0x11;
+// Headers
+#include<stdio.h>
+#include<math.h>
+
+// Program Variables
+int compareRegister = 0;
+int var1 = 0;
+int var2 = 0;
+int var3 = 0;
+int var4 = 0;
+int var5 = 0;
+int var6 = 0;
+int var7 = 0;
+int var8 = 0;
+int var9 = 0;
+int var10 = 0;
+int var11 = 0;
+int var12 = 0;
+int var13 = 0;
+int var14 = 0;
+int var15 = 0;
+
+// Program begins
+int main(){
+	var2 = 0;
+	var4 = 0;
+	do{
+		var3 = 0;
+		do{
+			var4 = var4 + 1;
+			var3 = var3 + 1;
+			compareRegister = var3 - 10;
+		} while(compareRegister < 0);
+		var2 = var2 + 1;
+		compareRegister = var2 - 10;
+	} while(compareRegister < 0);
+	return 0;
+}
