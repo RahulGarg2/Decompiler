@@ -115,6 +115,7 @@ vector<IfCondition> ifLoops;
 int breakJumpPoints[varSize];
 ControlTransferCommand jumps[varSize];
 int jumpClosing[varSize];
+int ifEnding[varSize];
 stack<ControlTransferCommand> loopStack;
 
 vector<string> GenerateFunctionBody(){
@@ -124,14 +125,14 @@ vector<string> GenerateFunctionBody(){
 		for(int j=0;j<sequentialInstructions.size();j++){
 			body.push_back(sequentialInstructions[j]);
 		}
-		for(int j=0;j<jumpClosing[i];j++){
+		for(int j=jumpClosing[i];jumpClosing[i]!=0;jumpClosing[i]--){
 			ControlTransferCommand temp = loopStack.top();
 			loopStack.pop();
 			if(temp.type.compare("while")==0){
 				body.push_back(loopTranslator(temp));
 			}
 			else{
-				body.push_back("}");
+				body.push_back(string(loopStack.size(),'\t')+"}");
 			}
 		}
 		if(jumps[i].status==1){
@@ -139,7 +140,19 @@ vector<string> GenerateFunctionBody(){
 				body.push_back(string(loopStack.size(),'\t')+"do{");
 			}
 			else{
-				body.push_back(loopTranslator(jumps[i]));
+				if(jumps[i].type.compare("if")==0 && ifEnding[i+1]>=1){
+					for(int j=jumpClosing[i+1];jumpClosing[i+1]!=0;jumpClosing[i+1]--){
+						loopStack.pop();
+						body.push_back(string(loopStack.size(),'\t')+"}");
+					}
+					i++;
+					body.push_back(string(loopStack.size(),'\t')+"else{");
+					loopStack.push(jumps[i]);
+					continue;
+				}
+				else{
+					body.push_back(loopTranslator(jumps[i]));
+				}
 			}
 			if(jumps[i].type.compare("break")!=0 && jumps[i].type.compare("continue")!=0){
 				loopStack.push(jumps[i]);
@@ -194,6 +207,7 @@ vector<IfCondition> findIfConditions(){
 	for(int i=0;i<callFlowModel.size();i++){
 		if(callFlowModel[i].breakPoint[0].at(0) == 'b'){
 			if(labelBlock[callFlowModel[i].breakPoint[1]]-1>=i && breakJumpPoints[i]==0){
+				ifEnding[labelBlock[callFlowModel[i].breakPoint[1]]-1]++;
 				IfCondition newIf(i, labelBlock[callFlowModel[i].breakPoint[1]]-1, callFlowModel[i].breakPoint[0]);
 				temp.push_back(newIf);
 			}
@@ -358,6 +372,7 @@ vector<string> generateCallFlowModel(){
 	loopStack.push(main);
 	memset(jumpClosing,0,sizeof(jumpClosing));
 	memset(breakJumpPoints,0,sizeof(breakJumpPoints));
+	memset(ifEnding,0,sizeof(ifEnding));
 	int i=0;
 	int blockID = 0;
 	string currentLabel = "";

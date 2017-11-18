@@ -22,17 +22,13 @@ int var15 = 0;
 
 // Program begins
 int main(){
-	var2 = 0;
-	var4 = 0;
-	do{
-		var3 = 0;
-		do{
-			var4 = var4 + 1;
-			var3 = var3 + 1;
-			compareRegister = var3 - 10;
-		} while(compareRegister < 0);
-		var2 = var2 + 1;
-		compareRegister = var2 - 10;
-	} while(compareRegister < 0);
+	var1 = 0;
+	compareRegister = var1 - 1;
+	if(compareRegister >= 0){
+		var1 = 2;
+	}
+	else{
+		var1 = 1;
+	}
 	return 0;
 }
