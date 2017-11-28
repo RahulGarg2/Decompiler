@@ -1,3 +1,4 @@
+
 #include<bits/stdc++.h>
 
 using namespace std;
@@ -583,7 +584,13 @@ string removeTab(string prgm){
 
 void preProcessFile(){
 	ifstream fin;
-	fin.open("filename.txt");
+	string s;
+	cout<<"Enter the name of the file \t";
+	cin>>s;
+	s=s+".s";
+	cout<<s;
+
+	fin.open(s);
 	string line;
 	string str;
 	while(getline(fin,line)){
@@ -941,4 +948,3 @@ int main()
 	// test();					// Write your tests here
 	return 0;
 }
-
