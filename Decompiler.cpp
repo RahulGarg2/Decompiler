@@ -433,7 +433,7 @@ vector<string> sequentialTranslator(vector<vector<string> > pgm, int tabs){
 }
 void dumpCode(vector<string> temp, string function, string signature){
 	ofstream fout;
-	fout.open("filename.c",ios::app);
+	fout.open("output.c",ios::app);
 	fout<<"// Program begins"<<endl;
 	fout<<function<<"{"<<endl;
 	for(int i=0;i<temp.size();i++){
@@ -471,7 +471,7 @@ string swiHandler(vector<string> instruction){
 void defineVariables(){
 	// Default program variables
 	ofstream fout;
-	fout.open("filename.c");
+	fout.open("output.c");
 	fout<<"// Headers"<<endl;
 	fout<<"#include<stdio.h>"<<endl;
 	fout<<"#include<math.h>"<<endl;
@@ -614,7 +614,7 @@ void preProcessFile(){
 	str=removeblanklines(str);
 
 	ofstream fout;
-	fout.open("filename.c");
+	fout.open("output.c");
 	fout<<str<<endl;
 	fin.close();
 	fout.close();
@@ -645,7 +645,7 @@ vector<string> cleanUpTokens(vector<string> instruction){
 
 void writeTokensToFile(){
 	ofstream fout;
-	fout.open("filename.c");
+	fout.open("output.c");
 	for(int i=Program.size()-1;i>=0;i--){
 		if(Program[i].size()==0){
 			Program.erase(Program.begin()+i);
@@ -663,7 +663,7 @@ void writeTokensToFile(){
 void tokenizeProgram(){
 	string line;
 	ifstream fin;
-	fin.open("filename.c");
+	fin.open("output.c");
 
 	// Reading file with space as delimiter
 	while(getline(fin, line))
