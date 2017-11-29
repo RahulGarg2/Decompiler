@@ -1,4 +1,3 @@
-
 #include<bits/stdc++.h>
 
 using namespace std;
@@ -6,6 +5,12 @@ typedef string (*FnPtr)(vector<string>);
 typedef std::unordered_map<std::string, FnPtr> command_map;
 
 const int varSize = 1000;
+
+class Function{
+	public:
+		string F_name;
+		vector<vector<string> > F_body;
+};
 
 class Block{	
 	public:
@@ -104,6 +109,10 @@ vector<string> GenerateFunctionBody();
 string loopTranslator(ControlTransferCommand);
 string addsParser(vector<string>);
 string subsParser(vector<string>);
+string blxParser(vector<string>);
+void ClearGlobalStack();
+void declarePrototype();
+void detectFunctions();
 
 // Global Variables
 vector<vector<string> > Program;
@@ -118,7 +127,133 @@ ControlTransferCommand jumps[varSize];
 int jumpClosing[varSize];
 int ifEnding[varSize];
 stack<ControlTransferCommand> loopStack;
+vector<Function> FunctionArrayVector;
+vector<vector<string> > mainBody;
+vector<int> returnSkipCount;
+map<int,int> excludedIfs;
+map<int,int> excludedWhiles;
 
+bool checkIfWithinLoops(int i){
+	for(int i=0;i<whileLoops.size();i++){
+		if(excludedWhiles[i]==1){
+			continue;
+		}
+		if(i>=whileLoops[i].startBlock && i<=whileLoops[i].continueJumps[0]){
+			return false;
+		}
+	}
+	for(int i=0;i<ifLoops.size();i++){
+		if(excludedIfs[i]==1){
+			continue;
+		}
+		if(i>ifLoops[i].startBlock && i<=ifLoops[i].endBlock){
+			return false;
+		}
+	}
+	return true;	
+}
+
+void findFunctionByName(string name){
+	int start = labelBlock[name];
+	excludedWhiles.clear();
+	excludedIfs.clear();
+	for(int i=0;i<whileLoops.size();i++){
+		if(i>=whileLoops[i].startBlock && i<=whileLoops[i].continueJumps[0]){
+			excludedWhiles[i]=1;
+		}
+	}
+	for(int i=0;i<ifLoops.size();i++){
+		if(i>ifLoops[i].startBlock && i<=ifLoops[i].endBlock){
+			excludedIfs[i]=1;
+		}
+	}
+	returnSkipCount.push_back(0);
+	Function f;
+	f.F_name = name;
+	int flag=0;
+	for(int i=start;;i++){
+		for(int j=0;j<callFlowModel[i].instructions.size();j++){
+			f.F_body.push_back(callFlowModel[i].instructions[j]);
+			if(callFlowModel[i].instructions[j][0].compare("mov")==0){
+				if(callFlowModel[i].instructions[j][1].compare("pc")==0){
+					returnSkipCount[returnSkipCount.size()-1]++;
+					if(checkIfWithinLoops(i)){
+						flag=1;
+						break;
+					}
+				}
+			}
+		}
+		if(flag){
+			break;
+		}
+		if(!(callFlowModel[i].breakPoint[0].compare("empty")==0)){
+			f.F_body.push_back(callFlowModel[i].breakPoint);
+		}
+	}
+	FunctionArrayVector.push_back(f);
+}
+void detectFunctions(){
+	vector<string> functionNames;
+	for(int i=0;i<Program.size();i++){
+		if(Program[i][0].compare("blx")==0){
+			if(std::find(functionNames.begin(), functionNames.end(), Program[i][1]) == functionNames.end())
+				functionNames.push_back(Program[i][1]);
+		}
+	}
+	for(int i=0;i<functionNames.size();i++){
+		findFunctionByName(functionNames[i]);
+	}
+	int fn=0;
+	mainBody.clear();
+	int i;
+	for(i=0;i<Program.size() && fn<functionNames.size();i++){
+		while(!Program[i][0].compare("$LABEL$")==0 || !Program[i][1].compare(functionNames[fn])==0){
+			mainBody.push_back(Program[i]);
+			i++;
+		}
+		while(returnSkipCount[fn]>0){
+			if(Program[i][0].compare("mov")==0){
+				if(Program[i][1].compare("pc")==0){
+					returnSkipCount[fn]--;
+				}
+			}
+			i++;
+		}
+		fn++;
+	}
+	while(i<Program.size()){
+		mainBody.push_back(Program[i]);
+		i++;
+	}
+}
+void ClearGlobalStack(){
+	callFlowModel.clear();
+	labelBlock.clear();
+	whileLoops.clear();
+	ifLoops.clear();
+	memset(breakJumpPoints, 0, sizeof(breakJumpPoints));
+	memset(jumpClosing, 0, sizeof(jumpClosing));
+	memset(ifEnding, 0, sizeof(ifEnding));
+	while(!loopStack.empty()){
+		loopStack.pop();
+	}
+	for(int i=0; i<varSize;i++){
+		ControlTransferCommand temp;
+		jumps[i] = temp;
+	}
+}
+bool checkIfElse(int q){
+	for(int i=0;i<ifLoops.size();i++){
+		if(q == ifLoops[i].startBlock){
+			continue;
+		}
+		if(ifLoops[i].endBlock == q+1){
+			return true;
+		}
+	}
+	return false;
+}
 vector<string> GenerateFunctionBody(){
 	vector<string> body;
 	for(int i=0;i<callFlowModel.size();i++){
@@ -141,7 +276,7 @@ vector<string> GenerateFunctionBody(){
 				body.push_back(string(loopStack.size(),'\t')+"do{");
 			}
 			else{
-				if(jumps[i].type.compare("if")==0 && ifEnding[i+1]>=1){
+				if(jumps[i].type.compare("if")==0 && checkIfElse(i)){
 					for(int j=jumpClosing[i+1];jumpClosing[i+1]!=0;jumpClosing[i+1]--){
 						loopStack.pop();
 						body.push_back(string(loopStack.size(),'\t')+"}");
@@ -355,10 +490,10 @@ void generateLinks(){
 	int i=0;
 	int blockID = 0;
 	while(i<Program.size()){
-		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && !(Program[i][0].at(0) == 'b')){
+		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && (!(Program[i][0].at(0) == 'b') || (Program[i][0].compare("blx")==0))){
 			i++;
 		}
-	    if(i<Program.size() && Program[i][0].at(0) == 'b'){
+	    if(i<Program.size() && (Program[i][0].at(0) == 'b')){
 			string targetLabel = Program[i][1];
 			int targetBlock = labelBlock[targetLabel];
 			callFlowModel[blockID].addOutgoingEdge(targetBlock);
@@ -369,6 +504,7 @@ void generateLinks(){
 	}
 }
 vector<string> generateCallFlowModel(){
+	ClearGlobalStack();
 	ControlTransferCommand main;
 	loopStack.push(main);
 	memset(jumpClosing,0,sizeof(jumpClosing));
@@ -379,7 +515,7 @@ vector<string> generateCallFlowModel(){
 	string currentLabel = "";
 	while(i<Program.size()){
 		vector<vector<string> > temp;
-		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && !(Program[i][0].at(0) == 'b')){
+		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && (!(Program[i][0].at(0) == 'b') || (Program[i][0].compare("blx")==0))){
 			temp.push_back(Program[i]);
 			i++;
 		} 
@@ -387,7 +523,7 @@ vector<string> generateCallFlowModel(){
 	    	labelBlock[Program[i][1]] = blockID+1;  
 	    }
 	    vector<string> bP;
-		if(i == Program.size() && (Program[i-1][0].at(0) == 'b')){
+		if(i == Program.size() && (Program[i-1][0].at(0) == 'b') && (Program[i-1][0].compare("blx") != 0)){
 			bP = Program[i-1];
 		}
 		else if(i<Program.size()){
@@ -427,14 +563,13 @@ vector<string> sequentialTranslator(vector<vector<string> > pgm, int tabs){
 	for(int i=0;i<pgm.size();i++){
 		string prefix = string(tabs, '\t');
 		prefix = prefix+decompileSequentialInstruction(pgm[i],listx);
-	temp.push_back(prefix);
+		temp.push_back(prefix);
 	}
 	return temp;
 }
 void dumpCode(vector<string> temp, string function, string signature){
 	ofstream fout;
 	fout.open("output.c",ios::app);
-	fout<<"// Program begins"<<endl;
 	fout<<function<<"{"<<endl;
 	for(int i=0;i<temp.size();i++){
 		string code = temp[i];
@@ -458,6 +593,7 @@ void dumpCode(vector<string> temp, string function, string signature){
 	if(!signature.compare("")==0)
 		fout<<string(loopStack.size(),'\t')+signature<<endl;
 	fout<<"}"<<endl;
+	fout<<endl;
 	fout.close();
 }
 string swiIntegerIn(){
@@ -499,6 +635,7 @@ void defineVariables(){
 		fout<<"int var"<<i<<" = 0;"<<endl;
 	}
 	fout<<endl;
+	fout<<"// Program begins"<<endl;
 	fout.close();
 }
 
@@ -605,7 +742,6 @@ void preProcessFile(){
 	cout<<"Enter the name of the file \t";
 	cin>>s;
 	s=s+".s";
-	cout<<s;
 
 	fin.open(s);
 	string line;
@@ -779,6 +915,9 @@ string movParser(vector<string> instruction)
 		cout<<"Error in movParser"<<endl;
 	}
 	string translatedCommand =  "";
+	if(instruction[1].compare("pc")==0){
+		return "return;";
+	}
 	string targetRegister = instruction[1];
 	string sourceRegister1 = instruction[2];
 	string targetTransform = "var" + to_string(variableTable[targetRegister]);
@@ -879,6 +1018,15 @@ string addsParser(vector<string> instruction){
 	translatedcommand = targetTransform + " = "+sourceTransform1 +" + " + sourceTransform2 + ";"+ "\n"+"compareRegister = "+sourceTransform1 +" + "+ sourceTransform2+";";
 	return translatedcommand;
 }
+string blxParser(vector<string> instruction){
+	if(instruction.at(0).compare("blx")!=0){
+		cout<<"Error in addsParser"<<endl;
+	}
+	string translatedcommand = "";
+	translatedcommand = instruction.at(1);
+	translatedcommand+="();";
+	return translatedcommand;
+}	
 void InitialiseCommands(command_map &listx){
     listx.emplace("add",&addParser);
     listx.emplace("sub",&subParser);
@@ -888,6 +1036,7 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("swi",&swiHandler);
     listx.emplace("adds",&addsParser);
     listx.emplace("subs",&subsParser);
+    listx.emplace("blx",&blxParser);
 }
 
 string decompileSequentialInstruction(vector<string> instruction,command_map listx){
@@ -941,7 +1090,7 @@ void test(){
 	cout<<endl;
 	// mov parser test ends
 
-	//addParser test
+	// addParser test
 	cout<<"addParser() testing..."<<endl;
 	cout<<"Input string: add r2,r2,#11"<<endl;
 	vector<string> temp4;
@@ -953,6 +1102,23 @@ void test(){
 	cout<<endl;
 	// add parser test ends
 
+	// blxParser test
+	cout<<"blxParser() testing..."<<endl;
+	cout<<"Input string: blx loop"<<endl;
+	vector<string> temp5;
+	temp5.push_back("blx");
+	temp5.push_back("loop");
+	cout<<"Output: "<<blxParser(temp5)<<endl;
+	cout<<endl;
+	// blx parser test ends
+
+}
+
+void declarePrototype(string name){
+	ofstream fout;
+	fout.open("output.c",ios::app);
+	fout<<"void "+name+"();"<<endl;
+	fout.close();
 }
 
 int main()
@@ -961,6 +1127,21 @@ int main()
 	preProcessFile();				// Phase 1 - Implemented by Rahul Garg
 	tokenizeProgram();				// Phase 2 - Implemented by Nihesh Anderson
 	defineVariables();				// Declares variables
+	mainBody = Program;
+	generateCallFlowModel();
+	detectFunctions();
+	for(int i=0;i<FunctionArrayVector.size();i++){
+		declarePrototype(FunctionArrayVector[i].F_name);
+	}
+	ofstream fout;
+	fout.open("output.c",ios::app);
+	fout<<endl;
+	fout.close();
+	for(int i=0;i<FunctionArrayVector.size();i++){
+		Program = FunctionArrayVector[i].F_body;
+		dumpCode(generateCallFlowModel(),"void "+FunctionArrayVector[i].F_name+"()","");
+	}
+	Program = mainBody;
 	dumpCode(generateCallFlowModel(),"int main()","return 0;");  	// Decompiles code and writes to file
 	// test();					// Write your tests here
 	return 0;
