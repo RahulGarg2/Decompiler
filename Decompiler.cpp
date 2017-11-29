@@ -274,53 +274,53 @@ string loopTranslator(ControlTransferCommand c)
 			command+="} while(compareRegister == 0);";
 		}
 		else if(c.condition.compare("b")==0){
-			command+="} while(true);";
+			command+="} while(1);";
 		}
 	}
 	else if(c.type.compare("continue")==0){
 		if(c.condition.compare("bgt")==0){
-			command+="if(compareRegister > 0){ \n continue; \n }";
+			command+="if(compareRegister > 0){ \n\tcontinue; \n}";
 		}
 		else if(c.condition.compare("ble")==0){
-			command+="if(compareRegister <= 0){ \n continue; \n }";
+			command+="if(compareRegister <= 0){ \n\tcontinue; \n}";
 		}
 		else if(c.condition.compare("blt")==0){
-			command+="if(compareRegister < 0){ \n continue; \n }";
+			command+="if(compareRegister < 0){ \n\tcontinue; \n}";
 		}
 		else if(c.condition.compare("bge")==0){
-			command+="if(compareRegister >= 0){ \n continue; \n }";
+			command+="if(compareRegister >= 0){ \n\tcontinue; \n}";
 		}
 		else if(c.condition.compare("bne")==0){
-			command+="if(compareRegister != 0){ \n continue; \n }";
+			command+="if(compareRegister != 0){ \n\tcontinue; \n}";
 		}
 		else if(c.condition.compare("beq")==0){
-			command+="if(compareRegister == 0){ \n continue; \n }";
+			command+="if(compareRegister == 0){ \n\tcontinue; \n}";
 		}
 		else if(c.condition.compare("b")==0){
-			command+="if(true){ \n continue; \n }";
+			command+="if(1){ \n\tcontinue; \n}";
 		}
 	}
 	else if(c.type.compare("break")==0){
 		if(c.condition.compare("bgt")==0){
-			command+="if(compareRegister > 0){ \n break; \n }";
+			command+="if(compareRegister > 0){ \n\tbreak; \n}";
 		}
 		else if(c.condition.compare("ble")==0){
-			command+="if(compareRegister <= 0){ \n break; \n }";
+			command+="if(compareRegister <= 0){ \n\tbreak; \n}";
 		}
 		else if(c.condition.compare("blt")==0){
-			command+="if(compareRegister < 0){ \n break; \n }";
+			command+="if(compareRegister < 0){ \n\tbreak; \n}";
 		}
 		else if(c.condition.compare("bge")==0){
-			command+="if(compareRegister >= 0){ \n break; \n }";
+			command+="if(compareRegister >= 0){ \n\tbreak; \n}";
 		}
 		else if(c.condition.compare("bne")==0){
-			command+="if(compareRegister != 0){ \n break; \n }";
+			command+="if(compareRegister != 0){ \n\tbreak; \n}";
 		}
 		else if(c.condition.compare("beq")==0){
-			command+="if(compareRegister == 0){ \n break; \n }";
+			command+="if(compareRegister == 0){ \n\tbreak; \n}";
 		}
 		else if(c.condition.compare("b")==0){
-			command+="if(true){ \n break; \n }";
+			command+="if(1){ \n\tbreak; \n}";
 		}
 	
 	}
@@ -344,7 +344,7 @@ string loopTranslator(ControlTransferCommand c)
 			command+="if(compareRegister != 0){";
 		}
 		else if(c.condition.compare("b")==0){
-			command+="if(false){";
+			command+="if(0){";
 		}
 	}
 	return command;
@@ -437,7 +437,23 @@ void dumpCode(vector<string> temp, string function, string signature){
 	fout<<"// Program begins"<<endl;
 	fout<<function<<"{"<<endl;
 	for(int i=0;i<temp.size();i++){
-		fout<<temp[i]<<endl;
+		string code = temp[i];
+		vector<string> splitCode;
+		stringstream ss(code);
+		string to;
+		while(std::getline(ss,to,'\n')){
+			splitCode.push_back(to);
+		}
+		int j=0;
+		string prefix = "";
+		while(splitCode[0].at(j)=='\t'){
+			prefix += '\t';
+			j++;
+		}
+		fout<<splitCode[0]<<endl;
+		for(int j=1;j<splitCode.size();j++){
+			fout<<prefix+splitCode[j]<<endl;
+		}
 	}
 	if(!signature.compare("")==0)
 		fout<<string(loopStack.size(),'\t')+signature<<endl;
@@ -445,7 +461,7 @@ void dumpCode(vector<string> temp, string function, string signature){
 	fout.close();
 }
 string swiIntegerIn(){
- 	return "if(var1 == 0){\n\tscanf(\"%d\",&var2);\n}";
+ 	return "if(var1 == 0){\n\tscanf(\"%d\",&var1);\n}";
 }
 string swiHandler(vector<string> instruction){
 	if(instruction[0].compare("swi")!=0){
@@ -475,6 +491,7 @@ void defineVariables(){
 	fout<<"// Headers"<<endl;
 	fout<<"#include<stdio.h>"<<endl;
 	fout<<"#include<math.h>"<<endl;
+	fout<<"#include<stdlib.h>"<<endl;
 	fout<<endl;
 	fout<<"// Program Variables"<<endl;
 	fout<<"int compareRegister = 0;"<<endl;
@@ -778,7 +795,7 @@ string movParser(vector<string> instruction)
 
 string swiIntegerOut(){
  	string translatedCommand = "";
- 	translatedCommand= "if(var1==1){ \n \t printf(\"%d\",var2); \n} ";
+ 	translatedCommand= "if(var1==1){ \n \tprintf(\"%d\",var2); \n} ";
  	return translatedCommand;
 }
 
