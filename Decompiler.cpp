@@ -113,6 +113,7 @@ string blxParser(vector<string>);
 void ClearGlobalStack();
 void declarePrototype();
 void detectFunctions();
+bool checkIfNotWithinLoops(int);
 
 // Global Variables
 vector<vector<string> > Program;
@@ -133,12 +134,13 @@ vector<int> returnSkipCount;
 map<int,int> excludedIfs;
 map<int,int> excludedWhiles;
 
-bool checkIfWithinLoops(int i){
+bool checkIfNotWithinLoops(int q){
 	for(int i=0;i<whileLoops.size();i++){
 		if(excludedWhiles[i]==1){
 			continue;
 		}
-		if(i>=whileLoops[i].startBlock && i<=whileLoops[i].continueJumps[0]){
+
+		if(q>=whileLoops[i].startBlock && q<=whileLoops[i].continueJumps[0]){
 			return false;
 		}
 	}
@@ -146,7 +148,7 @@ bool checkIfWithinLoops(int i){
 		if(excludedIfs[i]==1){
 			continue;
 		}
-		if(i>ifLoops[i].startBlock && i<=ifLoops[i].endBlock){
+		if(q>ifLoops[i].startBlock && q<ifLoops[i].endBlock){
 			return false;
 		}
 	}
@@ -163,7 +165,7 @@ void findFunctionByName(string name){
 		}
 	}
 	for(int i=0;i<ifLoops.size();i++){
-		if(i>ifLoops[i].startBlock && i<=ifLoops[i].endBlock){
+		if(i>ifLoops[i].startBlock && i<ifLoops[i].endBlock){
 			excludedIfs[i]=1;
 		}
 	}
@@ -177,7 +179,7 @@ void findFunctionByName(string name){
 			if(callFlowModel[i].instructions[j][0].compare("mov")==0){
 				if(callFlowModel[i].instructions[j][1].compare("pc")==0){
 					returnSkipCount[returnSkipCount.size()-1]++;
-					if(checkIfWithinLoops(i)){
+					if(checkIfNotWithinLoops(i)){
 						flag=1;
 						break;
 					}
