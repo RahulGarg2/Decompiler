@@ -605,7 +605,7 @@ string swiHandler(vector<string> instruction){
 	if(instruction[0].compare("swi")!=0){
 		cout<<"Cannot handle using swiHandler"<<endl;
 	}
-	if(instruction[1].compare("0x00")==0){
+	if(instruction[1].compare("0x00")==0 || instruction[1].compare("0x0")==0){
 	return swiCharacterOut();
 	}
 	else if(instruction[1].compare("0x6b")==0){
@@ -928,7 +928,12 @@ string movParser(vector<string> instruction)
 		sourceTransform1 ="var"+ to_string(variableTable[sourceRegister1]);
 	}
 	else{
-		sourceTransform1 = sourceRegister1.substr(1);
+		if(instruction.size()>=4){
+			sourceTransform1 = "' '";
+		}
+		else{
+			sourceTransform1 = sourceRegister1.substr(1);
+		}
 	}
 	translatedCommand = targetTransform+" = "+sourceTransform1+";";
 	return translatedCommand;
@@ -941,7 +946,7 @@ string swiIntegerOut(){
 }
 
 string swiCharacterOut(){
-	string translatedCommand = "printf(\"%c\" ,var1) \n";
+	string translatedCommand = "printf(\"%c\" ,var1); \n";
 	return translatedCommand;
 }
 
