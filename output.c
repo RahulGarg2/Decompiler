@@ -22,27 +22,25 @@ int var14 = 0;
 int var15 = 0;
 
 // Program begins
-void fnstarts();
-
-void fnstarts(){
-	do{
-		compareRegister = var2 - var1;
-		if(compareRegister > 0){ 
-			break; 
-		}
-		var3 = var2 * var3;
-		var2 = var2 + 1;
-	} while(1);
-	return;
-}
 
 int main(){
-	var1 = 10;
-	var3 = 1;
-	var2 = 1;
-	fnstarts();
-	printf("%d",var3);
-	var3 = 3;
+	var2 = 0;
+	var4 = 0;
+	do{
+		var3 = 0;
+		do{
+			var4 = var4 + 1;
+			var3 = var3 + 1;
+			compareRegister = var3 - 10;
+		} while(compareRegister < 0);
+		var2 = var2 + 1;
+		compareRegister = var2 - 10;
+	} while(compareRegister < 0);
+	var1 = 1;
+	var2 = var4;
+	if(var1==1){ 
+	 	printf("%d",var2); 
+	} 
 	return 0;
 }
 
