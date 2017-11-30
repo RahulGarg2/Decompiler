@@ -110,6 +110,7 @@ string loopTranslator(ControlTransferCommand);
 string addsParser(vector<string>);
 string subsParser(vector<string>);
 string blxParser(vector<string>);
+string blParser(vector<string>);
 void ClearGlobalStack();
 void declarePrototype();
 void detectFunctions();
@@ -198,7 +199,7 @@ void findFunctionByName(string name){
 void detectFunctions(){
 	vector<string> functionNames;
 	for(int i=0;i<Program.size();i++){
-		if(Program[i][0].compare("blx")==0){
+		if(Program[i][0].compare("blx")==0 || Program[i][0].compare("bl")==0){
 			if(std::find(functionNames.begin(), functionNames.end(), Program[i][1]) == functionNames.end())
 				functionNames.push_back(Program[i][1]);
 		}
@@ -492,7 +493,7 @@ void generateLinks(){
 	int i=0;
 	int blockID = 0;
 	while(i<Program.size()){
-		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && (!(Program[i][0].at(0) == 'b') || (Program[i][0].compare("blx")==0))){
+		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && (!(Program[i][0].at(0) == 'b') || (Program[i][0].compare("blx")==0) || (Program[i][0].compare("bl")==0))){
 			i++;
 		}
 	    if(i<Program.size() && (Program[i][0].at(0) == 'b')){
@@ -517,7 +518,7 @@ vector<string> generateCallFlowModel(){
 	string currentLabel = "";
 	while(i<Program.size()){
 		vector<vector<string> > temp;
-		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && (!(Program[i][0].at(0) == 'b') || (Program[i][0].compare("blx")==0))){
+		while(i<Program.size() && !(Program[i][0].compare("$LABEL$")==0) && (!(Program[i][0].at(0) == 'b') || (Program[i][0].compare("blx")==0) || (Program[i][0].compare("bl")==0))){
 			temp.push_back(Program[i]);
 			i++;
 		} 
@@ -525,7 +526,7 @@ vector<string> generateCallFlowModel(){
 	    	labelBlock[Program[i][1]] = blockID+1;  
 	    }
 	    vector<string> bP;
-		if(i == Program.size() && (Program[i-1][0].at(0) == 'b') && (Program[i-1][0].compare("blx") != 0)){
+		if(i == Program.size() && (Program[i-1][0].at(0) == 'b') && (Program[i-1][0].compare("blx") != 0) && (Program[i-1][0].compare("bl") != 0)){
 			bP = Program[i-1];
 		}
 		else if(i<Program.size()){
@@ -1027,13 +1028,22 @@ string addsParser(vector<string> instruction){
 }
 string blxParser(vector<string> instruction){
 	if(instruction.at(0).compare("blx")!=0){
-		cout<<"Error in addsParser"<<endl;
+		cout<<"Error in blxParser"<<endl;
 	}
 	string translatedcommand = "";
 	translatedcommand = instruction.at(1);
 	translatedcommand+="();";
 	return translatedcommand;
 }	
+string blParser(vector<string> instruction){
+	if(instruction.at(0).compare("bl")!=0){
+		cout<<"Error in blParser"<<endl;
+	}
+	string translatedcommand = "";
+	translatedcommand = instruction.at(1);
+	translatedcommand+="();";
+	return translatedcommand;
+}
 void InitialiseCommands(command_map &listx){
     listx.emplace("add",&addParser);
     listx.emplace("sub",&subParser);
@@ -1044,6 +1054,7 @@ void InitialiseCommands(command_map &listx){
     listx.emplace("adds",&addsParser);
     listx.emplace("subs",&subsParser);
     listx.emplace("blx",&blxParser);
+    listx.emplace("bl",&blParser);
 }
 
 string decompileSequentialInstruction(vector<string> instruction,command_map listx){
