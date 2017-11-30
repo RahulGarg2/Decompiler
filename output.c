@@ -24,30 +24,55 @@ int var15 = 0;
 // Program begins
 
 int main(){
-	var8 = 0;
 	var1 = 0;
 	if(var1 == 0){
 		scanf("%d",&var1);
 	}
-	var7 = var1;
-	var2 = 0;
-	var3 = 1;
-	compareRegister = var7 - 0;
-	if(compareRegister == 0){
-		var7 = 20;
-	}
+	var3 = var1;
+	var4 = 0;
+	var5 = 1;
+	var7 = 0;
+	var8 = 10;
+	var9 = 0;
 	do{
-		var2 = var3 + var2;
-		var3 = var2 - var3;
-		var1 = 1;
-		if(var1==1){ 
-		 	printf("%d",var2); 
-		} 
-		var1 = ' ';
-		printf("%c" ,var1); 
-		var8 = var8 + 1;
-		compareRegister = var8 - var7;
-	} while(compareRegister != 0);
+		compareRegister = var3 - 1;
+		if(compareRegister <= 0){ 
+			break; 
+		}
+		var5 = var5 + var4;
+		var4 = var5 - var4;
+		var5 = var5 - var4;
+		var5 = var5 + var4;
+		var3 = var3 - 1;
+		compareRegister = var3 - 1;
+	} while(1);
+	var5 = var4;
+	do{
+		compareRegister = var5 - 0;
+		if(compareRegister <= 0){ 
+			break; 
+		}
+		var3 = 0;
+		var6 = 0;
+		do{
+			var5 = var5 - 10;
+			compareRegister = var5 - 0;
+			if(compareRegister < 0){ 
+				break; 
+			}
+			var3 = var3 + 1;
+		} while(1);
+		var6 = var5 + 10;
+		var9 = var7 * var8;
+		var7 = var9;
+		var7 = var7 + var6;
+		var5 = var3;
+	} while(1);
+	var1 = 1;
+	var2 = var7;
+	if(var1==1){ 
+	 	printf("%d",var2); 
+	} 
 	exit(0);
 	return 0;
 }
